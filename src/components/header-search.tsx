@@ -43,8 +43,12 @@ export function HeaderSearch() {
   }, [q, products]);
 
   return (
-    <div ref={ref} className="relative">
-      <button onClick={() => setOpen((o) => !o)} aria-label="Hledat" className="hover:opacity-70">
+    <div ref={ref} className="relative flex items-center">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Hledat"
+        className="flex items-center hover:opacity-70"
+      >
         <Search className="h-5 w-5" />
       </button>
 
