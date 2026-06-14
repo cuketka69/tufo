@@ -1,9 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Award, Factory, Globe, Recycle, MapPin, Phone, Mail } from "lucide-react";
 
 import blackLogo from "@/assets/blogo.webp";
 import handImg from "@/assets/hand.webp";
+import productTire from "@/assets/product-tire.jpg";
+import silniceImg from "@/assets/silnice.webp";
+import gravelImg from "@/assets/gravel.webp";
+import drahaImg from "@/assets/draha.webp";
 
 export const Route = createFileRoute("/o-nas")({
   head: () => ({
@@ -50,11 +55,41 @@ const VALUES = [
 ];
 
 const TIMELINE = [
-  { year: "1991", text: "Založení společnosti TUFO a první výroba galusek." },
-  { year: "1995", text: "Vývoj unikátní bezdušové technologie pro plášťovky." },
-  { year: "2005", text: "Expanze na zahraniční trhy a spolupráce s profi týmy." },
-  { year: "2015", text: "Rozšíření sortimentu o gravel a MTB bezdušové pláště." },
-  { year: "Dnes", text: "Český výrobce dodávající do více než 60 zemí světa." },
+  {
+    year: "1991",
+    text: "Založení společnosti TUFO a první výroba galusek.",
+    image: handImg,
+    detail:
+      "Vše začalo v České republice s vizí vyrábět nejkvalitnější galusky. Ruční řemeslo a důraz na detail tvoří základ značky dodnes.",
+  },
+  {
+    year: "1995",
+    text: "Vývoj unikátní bezdušové technologie pro plášťovky.",
+    image: productTire,
+    detail:
+      "Stali jsme se jedním z mála výrobců na světě, kteří zvládli patentovanou technologii bezdušových plášťovek (Tubeless).",
+  },
+  {
+    year: "2005",
+    text: "Expanze na zahraniční trhy a spolupráce s profi týmy.",
+    image: silniceImg,
+    detail:
+      "Naše pláště začaly jezdit profesionální silniční týmy a značka TUFO se prosadila na trzích po celé Evropě i mimo ni.",
+  },
+  {
+    year: "2015",
+    text: "Rozšíření sortimentu o gravel a MTB bezdušové pláště.",
+    image: gravelImg,
+    detail:
+      "Reagovali jsme na boom gravelu a horských kol — přišly nové bezdušové modely pro terén, dobrodružství i závod.",
+  },
+  {
+    year: "Dnes",
+    text: "Český výrobce dodávající do více než 60 zemí světa.",
+    image: drahaImg,
+    detail:
+      "Zůstáváme rodinnou českou firmou s vlastní výrobou, která spojuje desítky let zkušeností s neustálým vývojem nových technologií.",
+  },
 ];
 
 function AboutPage() {
@@ -155,13 +190,11 @@ function AboutPage() {
 
       {/* Timeline */}
       <section className="mx-auto max-w-3xl px-6 py-16 md:py-24">
-        <h2 className="mb-10 font-display text-3xl uppercase md:text-4xl">Milníky</h2>
-        <div className="space-y-6">
+        <h2 className="mb-4 font-display text-3xl uppercase md:text-4xl">Milníky</h2>
+        <p className="mb-8 text-sm text-muted-foreground">Najeďte myší na milník pro více informací.</p>
+        <div className="space-y-3">
           {TIMELINE.map((t) => (
-            <div key={t.year} className="flex gap-5">
-              <div className="w-20 shrink-0 font-display text-xl text-[var(--orange-deep)]">{t.year}</div>
-              <div className="border-l-2 border-black/10 pl-5 text-muted-foreground">{t.text}</div>
-            </div>
+            <Milestone key={t.year} item={t} />
           ))}
         </div>
       </section>
@@ -247,6 +280,44 @@ function AboutPage() {
           </Link>
         </div>
       </section>
+    </div>
+  );
+}
+
+function Milestone({ item }: { item: (typeof TIMELINE)[number] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      className={`rounded-2xl border transition-colors ${
+        open ? "border-[var(--orange-deep)]/30 bg-white" : "border-transparent"
+      }`}
+    >
+      <div className="flex cursor-pointer items-center gap-5 px-4 py-3">
+        <div className="w-20 shrink-0 font-display text-xl text-[var(--orange-deep)]">{item.year}</div>
+        <div className="border-l-2 border-black/10 pl-5 text-muted-foreground">{item.text}</div>
+      </div>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="flex flex-col gap-5 px-4 pb-5 sm:flex-row sm:pl-[6.25rem]">
+              <img
+                src={item.image}
+                alt={item.year}
+                className="h-40 w-full shrink-0 rounded-xl object-cover sm:w-56"
+              />
+              <p className="text-sm leading-relaxed text-muted-foreground">{item.detail}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
