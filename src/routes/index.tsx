@@ -307,7 +307,7 @@ function CategoryCard({ name, img, delay }: { name: string; img: string; delay: 
         </svg>
       </div>
       <div className="absolute bottom-5 left-5">
-        <span className="pill-btn pill-btn-hover">Shop now</span>
+        <span className="pill-btn pill-btn-hover">Nakoupit</span>
       </div>
     </motion.div>
   );
