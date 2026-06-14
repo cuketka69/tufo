@@ -220,7 +220,7 @@ function CategorySection() {
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ["start start", "end end"],
+    offset: ["start center", "end end"],
   });
   const x = useTransform(scrollYProgress, [0, 1], [0, -maxScroll]);
   const progress = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
