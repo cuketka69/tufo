@@ -12,4 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Force-enable Nitro with the Vercel preset so `vite build` emits .vercel/output
+  // (Build Output API) for deployment on Vercel. Outside a Lovable context Nitro is
+  // otherwise skipped, which leaves Vercel with nothing to serve (404 NOT_FOUND).
+  nitro: { preset: "vercel" },
 });
