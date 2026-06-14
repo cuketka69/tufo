@@ -208,16 +208,6 @@ function Hero() {
             height={1024}
           />
 
-          {/* Price badge */}
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.4, type: "spring" }}
-            className="absolute top-6 right-2 md:right-12 bg-white rounded-full px-5 py-2.5 shadow-xl font-black text-[var(--ink)]"
-          >
-            od 890&nbsp;Kč
-          </motion.div>
-
           {/* Headline overlay */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
             <motion.h1
@@ -249,16 +239,6 @@ function Hero() {
               Nakoupit
             </motion.a>
           </div>
-        </div>
-
-        {/* Carousel arrows */}
-        <div className="absolute bottom-8 left-6 flex gap-2">
-          <button className="w-10 h-10 rounded-full bg-[var(--ink)] text-white flex items-center justify-center hover:scale-105 transition">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button className="w-10 h-10 rounded-full bg-white/30 text-white border border-white/40 flex items-center justify-center hover:scale-105 transition">
-            <ChevronRight className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </section>
