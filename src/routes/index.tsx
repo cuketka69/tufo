@@ -60,6 +60,16 @@ const CATEGORIES = [
 
 const FILTERS = ["Vše", "Galusky", "Plášťovky", "Pláště", "Bezdušové TR", "Příslušenství"] as const;
 
+// Záložní ukázkové produkty — zobrazí se, když se z databáze nic nenačte
+// (např. na Vercelu, kde lokální SQLite neběží). Jakmile bude zapojená cloud
+// databáze s produkty, použijí se automaticky reálná data místo těchto.
+const DEMO_PRODUCTS: Product[] = [
+  { id: -1, sku: "TUF-S33", name: "Tufo S33 Pro", type: "Galusky", category_id: null, category_name: "Silnice", price: 1490, training: 60, racing: 95, stock: 42, image: null, description: null, featured: 1, active: 1, created_at: "" },
+  { id: -2, sku: "TUF-CAL", name: "Tufo Calibra Plus", type: "Plášťovky", category_id: null, category_name: "Silnice", price: 890, training: 75, racing: 85, stock: 88, image: null, description: null, featured: 0, active: 1, created_at: "" },
+  { id: -3, sku: "TUF-GSP", name: "Tufo Gravel Speedero", type: "Bezdušové TR", category_id: null, category_name: "Gravel", price: 1290, training: 80, racing: 80, stock: 31, image: null, description: null, featured: 1, active: 1, created_at: "" },
+  { id: -4, sku: "TUF-XC6", name: "Tufo XC6 TR", type: "Pláště", category_id: null, category_name: "MTB", price: 1390, training: 70, racing: 90, stock: 12, image: null, description: null, featured: 0, active: 1, created_at: "" },
+];
+
 function Home() {
   const [cartOpen, setCartOpen] = useState(false);
   const [cart, setCart] = useState<{ p: Product; qty: number }[]>([]);
@@ -70,7 +80,12 @@ function Home() {
     queryKey: ["shop", "products"],
     queryFn: () => listActiveProducts(),
   });
-  const products = useMemo(() => productsQuery.data ?? [], [productsQuery.data]);
+  const products = useMemo(() => {
+    if (productsQuery.isLoading) return [];
+    const data = productsQuery.data ?? [];
+    // Když z DB nic nepřijde (prázdné nebo chyba), ukaž ukázkové produkty.
+    return data.length ? data : DEMO_PRODUCTS;
+  }, [productsQuery.data, productsQuery.isLoading]);
 
   const addToCart = (p: Product) => {
     setCart((c) => {
