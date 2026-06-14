@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring } from "framer-motion";
 import {
   ChevronLeft,
@@ -198,13 +198,31 @@ function TrustBar() {
 
 /* ---------------- CATEGORY SECTION ---------------- */
 function CategorySection({ index, setIndex }: { index: number; setIndex: (i: number) => void }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scroll = (dir: 1 | -1) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir * 360, behavior: "smooth" });
-    setIndex(Math.min(CATEGORIES.length - 1, Math.max(0, index + dir)));
-  };
+  const trackRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(360);
+  const [maxIndex, setMaxIndex] = useState(CATEGORIES.length - 1);
+  const GAP = 20;
+
+  useEffect(() => {
+    const measure = () => {
+      const track = trackRef.current;
+      const viewport = viewportRef.current;
+      const first = track?.children[0] as HTMLElement | undefined;
+      if (!track || !viewport || !first) return;
+      const s = first.offsetWidth + GAP;
+      setStep(s);
+      const visible = Math.max(1, Math.floor((viewport.offsetWidth + GAP) / s));
+      setMaxIndex(Math.max(0, CATEGORIES.length - visible));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const clamped = Math.min(index, maxIndex);
+  const go = (dir: 1 | -1) => setIndex(Math.min(maxIndex, Math.max(0, clamped + dir)));
+
   return (
     <section className="py-20 md:py-28">
       <div className="max-w-7xl mx-auto px-6">
@@ -231,34 +249,40 @@ function CategorySection({ index, setIndex }: { index: number; setIndex: (i: num
           </svg>
         </motion.div>
 
-        <div
-          ref={scrollRef}
-          className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-6 -mx-6 px-6 scrollbar-hide"
-          style={{ scrollbarWidth: "none" }}
-        >
-          {CATEGORIES.map((c, i) => (
-            <CategoryCard key={c.name} {...c} delay={i * 0.08} />
-          ))}
+        <div ref={viewportRef} className="overflow-hidden -mx-6 px-6 py-2">
+          <motion.div
+            ref={trackRef}
+            className="flex gap-5"
+            animate={{ x: -clamped * step }}
+            transition={{ type: "spring", stiffness: 260, damping: 34 }}
+          >
+            {CATEGORIES.map((c, i) => (
+              <CategoryCard key={c.name} {...c} delay={i * 0.08} />
+            ))}
+          </motion.div>
         </div>
 
         <div className="flex items-center justify-between mt-6">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => scroll(-1)}
-              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition"
+              onClick={() => go(-1)}
+              disabled={clamped <= 0}
+              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[var(--ink)]"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={() => scroll(1)}
-              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition"
+              onClick={() => go(1)}
+              disabled={clamped >= maxIndex}
+              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[var(--ink)]"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
             <div className="w-32 h-[3px] bg-black/10 rounded-full ml-3 overflow-hidden">
-              <div
-                className="h-full bg-[var(--orange-deep)] rounded-full transition-all"
-                style={{ width: `${((index + 1) / CATEGORIES.length) * 100}%` }}
+              <motion.div
+                className="h-full bg-[var(--orange-deep)] rounded-full"
+                animate={{ width: `${((clamped + 1) / (maxIndex + 1)) * 100}%` }}
+                transition={{ type: "spring", stiffness: 260, damping: 34 }}
               />
             </div>
           </div>
