@@ -393,6 +393,35 @@ function CategoryCard({ name, img, delay }: { name: string; img: string; delay: 
   );
 }
 
+/* ---------------- "Zobrazit všechny produkty" button ---------------- */
+function AllProductsButton() {
+  const navigate = useNavigate();
+  const [filling, setFilling] = useState(false);
+
+  return (
+    <button
+      onClick={() => setFilling(true)}
+      disabled={filling}
+      className="relative overflow-hidden rounded-full border-2 border-transparent bg-[var(--ink)] px-8 py-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition-colors hover:border-[var(--orange-deep)]"
+    >
+      {/* Oranžová výplň zleva po kliknutí */}
+      <motion.span
+        aria-hidden
+        className="absolute inset-0 origin-left bg-[var(--orange-deep)]"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: filling ? 1 : 0 }}
+        transition={{ duration: 0.7, ease: "easeInOut" }}
+        onAnimationComplete={() => {
+          if (filling) navigate({ to: "/produkty" });
+        }}
+      />
+      <span className="relative z-10 inline-flex items-center gap-2">
+        Zobrazit všechny produkty <ArrowRight className="h-4 w-4" />
+      </span>
+    </button>
+  );
+}
+
 /* ---------------- SHOP ---------------- */
 function ShopSection({
   filter,
@@ -457,12 +486,7 @@ function ShopSection({
         )}
 
         <div className="mt-12 flex justify-center">
-          <Link
-            to="/produkty"
-            className="inline-flex items-center gap-2 rounded-full bg-[var(--ink)] px-8 py-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--orange-deep)]"
-          >
-            Zobrazit všechny produkty <ArrowRight className="w-4 h-4" />
-          </Link>
+          <AllProductsButton />
         </div>
       </div>
     </section>
