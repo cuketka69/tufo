@@ -196,6 +196,7 @@ function TrustBar() {
 /* ---------------- CATEGORY SECTION ---------------- */
 function CategorySection() {
   const sectionRef = useRef<HTMLElement>(null);
+  const stickyRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [maxScroll, setMaxScroll] = useState(0);
   const [sectionHeight, setSectionHeight] = useState(0);
@@ -203,10 +204,11 @@ function CategorySection() {
   useEffect(() => {
     const measure = () => {
       const track = trackRef.current;
-      if (!track) return;
+      const sticky = stickyRef.current;
+      if (!track || !sticky) return;
       const ms = Math.max(0, track.scrollWidth - window.innerWidth + 48);
       setMaxScroll(ms);
-      setSectionHeight(window.innerHeight + ms);
+      setSectionHeight(sticky.offsetHeight + ms);
     };
     measure();
     window.addEventListener("resize", measure);
@@ -231,7 +233,7 @@ function CategorySection() {
       className="relative bg-[var(--cream)]"
       style={{ height: sectionHeight ? `${sectionHeight}px` : "300vh" }}
     >
-      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden py-10">
+      <div ref={stickyRef} className="sticky top-16 overflow-hidden py-12">
         <div className="mx-auto mb-10 w-full max-w-7xl px-6 text-center">
           <h2 className="font-display text-3xl uppercase sm:text-5xl md:text-6xl">
             Nakupujte podle kategorie
