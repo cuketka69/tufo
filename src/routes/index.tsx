@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring } from "framer-motion";
@@ -590,9 +590,9 @@ function BrandStory() {
             kombinujeme tradiční gumárenské řemeslo s patentovanou technologií bezdušových plášťů,
             kterou jezdí profesionálové po celém světě.
           </p>
-          <a href="#shop" className="pill-btn pill-btn-hover mt-8 inline-flex">
-            Objevit kolekci <ArrowRight className="w-4 h-4" />
-          </a>
+          <Link to="/o-nas" className="pill-btn pill-btn-hover mt-8 inline-flex">
+            Zjistit více o nás <ArrowRight className="w-4 h-4" />
+          </Link>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
