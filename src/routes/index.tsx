@@ -196,7 +196,6 @@ function TrustBar() {
 /* ---------------- CATEGORY SECTION ---------------- */
 function CategorySection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const stickyRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [maxScroll, setMaxScroll] = useState(0);
   const [sectionHeight, setSectionHeight] = useState(0);
@@ -204,11 +203,10 @@ function CategorySection() {
   useEffect(() => {
     const measure = () => {
       const track = trackRef.current;
-      const sticky = stickyRef.current;
-      if (!track || !sticky) return;
+      if (!track) return;
       const ms = Math.max(0, track.scrollWidth - window.innerWidth + 48);
       setMaxScroll(ms);
-      setSectionHeight(sticky.offsetHeight + ms);
+      setSectionHeight(window.innerHeight + ms);
     };
     measure();
     window.addEventListener("resize", measure);
@@ -233,8 +231,8 @@ function CategorySection() {
       className="relative bg-[var(--cream)]"
       style={{ height: sectionHeight ? `${sectionHeight}px` : "300vh" }}
     >
-      <div ref={stickyRef} className="sticky top-16 overflow-hidden py-12">
-        <div className="mx-auto mb-10 w-full max-w-7xl px-6 text-center">
+      <div className="sticky top-0 flex h-screen flex-col justify-between overflow-hidden py-16">
+        <div className="mx-auto w-full max-w-7xl px-6 text-center">
           <h2 className="font-display text-3xl uppercase sm:text-5xl md:text-6xl">
             Nakupujte podle kategorie
           </h2>
@@ -249,7 +247,7 @@ function CategorySection() {
           ))}
         </motion.div>
 
-        <div className="mx-auto mt-10 flex w-full max-w-7xl items-center justify-between gap-4 px-6">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-6">
           <div className="h-[3px] w-full max-w-xs overflow-hidden rounded-full bg-black/10">
             <motion.div
               className="h-full rounded-full bg-[var(--orange-deep)]"
