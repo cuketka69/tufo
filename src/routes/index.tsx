@@ -13,7 +13,7 @@ import {
   Instagram,
   ArrowRight,
 } from "lucide-react";
-import wheelImg from "@/assets/wheel.png";
+import wheelImg from "@/assets/pneu.webp";
 import handImg from "@/assets/hand.webp";
 import catRoad from "@/assets/silnice.webp";
 import catGravel from "@/assets/gravel.webp";
