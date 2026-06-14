@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -33,8 +33,10 @@ import productTire from "@/assets/product-tire.jpg";
 import whiteLogo from "@/assets/wlogo.webp";
 import blackLogo from "@/assets/blogo.webp";
 import { Toaster } from "@/components/ui/sonner";
-import { listActiveProducts, createOrder } from "@/lib/api/eshop.functions";
+import { createOrder } from "@/lib/api/eshop.functions";
 import type { Product } from "@/lib/eshop-types";
+import { useShopProducts } from "@/lib/shop";
+import { useCart } from "@/lib/cart";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -61,42 +63,21 @@ const CATEGORIES = [
 
 const FILTERS = ["Vše", "Galusky", "Plášťovky", "Pláště", "Bezdušové TR", "Příslušenství"] as const;
 
-// Záložní ukázkové produkty — zobrazí se, když se z databáze nic nenačte
-// (např. na Vercelu, kde lokální SQLite neběží). Jakmile bude zapojená cloud
-// databáze s produkty, použijí se automaticky reálná data místo těchto.
-const DEMO_PRODUCTS: Product[] = [
-  { id: -1, sku: "TUF-S33", name: "Tufo S33 Pro", type: "Galusky", category_id: null, category_name: "Silnice", price: 1490, training: 60, racing: 95, stock: 42, image: null, description: null, featured: 1, active: 1, created_at: "" },
-  { id: -2, sku: "TUF-CAL", name: "Tufo Calibra Plus", type: "Plášťovky", category_id: null, category_name: "Silnice", price: 890, training: 75, racing: 85, stock: 88, image: null, description: null, featured: 0, active: 1, created_at: "" },
-  { id: -3, sku: "TUF-GSP", name: "Tufo Gravel Speedero", type: "Bezdušové TR", category_id: null, category_name: "Gravel", price: 1290, training: 80, racing: 80, stock: 31, image: null, description: null, featured: 1, active: 1, created_at: "" },
-  { id: -4, sku: "TUF-XC6", name: "Tufo XC6 TR", type: "Pláště", category_id: null, category_name: "MTB", price: 1390, training: 70, racing: 90, stock: 12, image: null, description: null, featured: 0, active: 1, created_at: "" },
-];
-
 function Home() {
+  const navigate = useNavigate();
+  const { cart, setCart, addToCart: addCart, total: cartTotal, count: cartCount } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
-  const [cart, setCart] = useState<{ p: Product; qty: number }[]>([]);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("Vše");
   const [catIndex, setCatIndex] = useState(0);
-  const [detail, setDetail] = useState<Product | null>(null);
 
-  const productsQuery = useQuery({
-    queryKey: ["shop", "products"],
-    queryFn: () => listActiveProducts(),
-  });
-  const products = useMemo(() => {
-    if (productsQuery.isLoading) return [];
-    const data = productsQuery.data ?? [];
-    // Když z DB nic nepřijde (prázdné nebo chyba), ukaž ukázkové produkty.
-    return data.length ? data : DEMO_PRODUCTS;
-  }, [productsQuery.data, productsQuery.isLoading]);
+  const { products, isLoading: productsLoading } = useShopProducts();
 
   const addToCart = (p: Product) => {
-    setCart((c) => {
-      const ex = c.find((x) => x.p.id === p.id);
-      if (ex) return c.map((x) => (x.p.id === p.id ? { ...x, qty: x.qty + 1 } : x));
-      return [...c, { p, qty: 1 }];
-    });
+    addCart(p);
     setCartOpen(true);
   };
+
+  const openProduct = (p: Product) => navigate({ to: "/produkt/$id", params: { id: String(p.id) } });
 
   const filtered = useMemo(
     () => (filter === "Vše" ? products : products.filter((p) => p.type === filter)),
@@ -107,9 +88,6 @@ function Home() {
     const featured = products.filter((p) => p.featured);
     return (featured.length ? featured : products).slice(0, 6);
   }, [products]);
-
-  const cartTotal = cart.reduce((s, x) => s + x.p.price * x.qty, 0);
-  const cartCount = cart.reduce((s, x) => s + x.qty, 0);
 
   return (
     <div className="bg-[var(--cream)] text-[var(--ink)] overflow-x-hidden">
@@ -122,12 +100,12 @@ function Home() {
         setFilter={setFilter}
         products={filtered}
         onAdd={addToCart}
-        onOpen={setDetail}
-        loading={productsQuery.isLoading}
+        onOpen={openProduct}
+        loading={productsLoading}
       />
       <BrandStory />
       <PromoBanner />
-      <TopProducts products={topProducts} onAdd={addToCart} onOpen={setDetail} />
+      <TopProducts products={topProducts} onAdd={addToCart} onOpen={openProduct} />
       <Footer />
       <CartDrawer
         open={cartOpen}
@@ -137,7 +115,6 @@ function Home() {
         total={cartTotal}
         onOrdered={() => setCart([])}
       />
-      <ProductModal product={detail} onClose={() => setDetail(null)} onAdd={addToCart} />
       <Toaster position="top-right" richColors />
     </div>
   );
@@ -605,103 +582,6 @@ function Bar({ label, value, tone = "orange" }: { label: string; value: number; 
         {value}%
       </span>
     </div>
-  );
-}
-
-/* ---------------- PRODUCT DETAIL MODAL ---------------- */
-function ProductModal({
-  product,
-  onClose,
-  onAdd,
-}: {
-  product: Product | null;
-  onClose: () => void;
-  onAdd: (p: Product) => void;
-}) {
-  return (
-    <AnimatePresence>
-      {product && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-[80]"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", damping: 26, stiffness: 240 }}
-            className="fixed left-1/2 top-1/2 z-[90] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
-          >
-            <button
-              onClick={onClose}
-              className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow hover:bg-black/5"
-              aria-label="Zavřít"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <div className="grid max-h-[90vh] grid-cols-1 overflow-y-auto md:grid-cols-2">
-              <div className="relative aspect-square bg-gradient-to-b from-[#1a1a1a] to-[#2e2e2e] md:aspect-auto">
-                <img
-                  src={product.image || productTire}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
-                {!!product.featured && (
-                  <span className="absolute left-4 top-4 rounded-full bg-[var(--ink)] px-4 py-1.5 text-[11px] font-bold tracking-[0.15em] text-white shadow-lg">
-                    TOP
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-col p-7">
-                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--orange-deep)]">
-                  {product.type}
-                  {product.category_name ? ` · ${product.category_name}` : ""}
-                </p>
-                <h2 className="mt-2 font-display text-3xl uppercase leading-tight">{product.name}</h2>
-
-                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                  {product.description ||
-                    "Prémiový cyklistický plášť TUFO vyrobený v České republice. Spojení tradičního gumárenského řemesla a patentované technologie pro maximální výkon."}
-                </p>
-
-                <div className="mt-6 space-y-3">
-                  <Bar label="Trénink" value={product.training} tone="orange" />
-                  <Bar label="Závod" value={product.racing} tone="ink" />
-                </div>
-
-                <div className="mt-5 text-sm">
-                  {product.stock > 0 ? (
-                    <span className="font-semibold text-emerald-600">Skladem ({product.stock} ks)</span>
-                  ) : (
-                    <span className="font-semibold text-rose-600">Vyprodáno</span>
-                  )}
-                </div>
-
-                <div className="mt-auto flex items-center justify-between gap-4 pt-6">
-                  <span className="font-black text-3xl tracking-tight">
-                    {new Intl.NumberFormat("cs-CZ").format(product.price)} Kč
-                  </span>
-                  <button
-                    onClick={() => {
-                      onAdd(product);
-                      onClose();
-                    }}
-                    disabled={product.stock <= 0}
-                    className="rounded-full bg-[var(--ink)] px-7 py-3.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--orange-deep)] disabled:opacity-40 disabled:hover:bg-[var(--ink)]"
-                  >
-                    Do košíku
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
   );
 }
 
