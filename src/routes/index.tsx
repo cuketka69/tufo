@@ -2,8 +2,6 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring } from "framer-motion";
 import {
-  ChevronLeft,
-  ChevronRight,
   Shield,
   CreditCard,
   Store,
@@ -59,7 +57,6 @@ function Home() {
   const navigate = useNavigate();
   const { addToCart: addCart, openCart } = useCart();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("Vše");
-  const [catIndex, setCatIndex] = useState(0);
 
   const { products, isLoading: productsLoading } = useShopProducts();
 
@@ -85,7 +82,7 @@ function Home() {
       <SiteHeader />
       <Hero />
       <TrustBar />
-      <CategorySection index={catIndex} setIndex={setCatIndex} />
+      <CategorySection />
       <ShopSection
         filter={filter}
         setFilter={setFilter}
@@ -197,96 +194,67 @@ function TrustBar() {
 }
 
 /* ---------------- CATEGORY SECTION ---------------- */
-function CategorySection({ index, setIndex }: { index: number; setIndex: (i: number) => void }) {
+function CategorySection() {
+  const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const [step, setStep] = useState(360);
-  const [maxIndex, setMaxIndex] = useState(CATEGORIES.length - 1);
-  const GAP = 20;
+  const [maxScroll, setMaxScroll] = useState(0);
+  const [sectionHeight, setSectionHeight] = useState(0);
 
   useEffect(() => {
     const measure = () => {
       const track = trackRef.current;
-      const viewport = viewportRef.current;
-      const first = track?.children[0] as HTMLElement | undefined;
-      if (!track || !viewport || !first) return;
-      const s = first.offsetWidth + GAP;
-      setStep(s);
-      const visible = Math.max(1, Math.floor((viewport.offsetWidth + GAP) / s));
-      setMaxIndex(Math.max(0, CATEGORIES.length - visible));
+      if (!track) return;
+      const ms = Math.max(0, track.scrollWidth - window.innerWidth + 48);
+      setMaxScroll(ms);
+      setSectionHeight(window.innerHeight + ms);
     };
     measure();
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    // přeměřit po načtení obrázků
+    const t = setTimeout(measure, 300);
+    return () => {
+      window.removeEventListener("resize", measure);
+      clearTimeout(t);
+    };
   }, []);
 
-  const clamped = Math.min(index, maxIndex);
-  const go = (dir: 1 | -1) => setIndex(Math.min(maxIndex, Math.max(0, clamped + dir)));
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
+  const x = useTransform(scrollYProgress, [0, 1], [0, -maxScroll]);
+  const progress = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   return (
-    <section className="py-20 md:py-28">
-      <div className="max-w-7xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-3xl sm:text-5xl md:text-6xl uppercase font-display">
+    <section
+      ref={sectionRef}
+      className="relative bg-[var(--cream)]"
+      style={{ height: sectionHeight ? `${sectionHeight}px` : "300vh" }}
+    >
+      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden py-10">
+        <div className="mx-auto mb-10 w-full max-w-7xl px-6 text-center">
+          <h2 className="font-display text-3xl uppercase sm:text-5xl md:text-6xl">
             Nakupujte podle kategorie
           </h2>
-          <p className="text-sm text-muted-foreground mt-3">
+          <p className="mt-3 text-sm text-muted-foreground">
             Najděte ideální plášť šitý na míru vaší disciplíně
           </p>
-          <svg className="mx-auto mt-3" width="60" height="14" viewBox="0 0 60 14" fill="none">
-            <path
-              d="M2 7 Q 10 1 18 7 T 34 7 T 50 7 T 60 7"
-              stroke="oklch(0.65 0.22 38)"
-              strokeWidth="2.5"
-              fill="none"
-              strokeLinecap="round"
-            />
-          </svg>
-        </motion.div>
-
-        <div ref={viewportRef} className="overflow-hidden -mx-6 px-6 py-2">
-          <motion.div
-            ref={trackRef}
-            className="flex gap-5"
-            animate={{ x: -clamped * step }}
-            transition={{ type: "spring", stiffness: 260, damping: 34 }}
-          >
-            {CATEGORIES.map((c, i) => (
-              <CategoryCard key={c.name} {...c} delay={i * 0.08} />
-            ))}
-          </motion.div>
         </div>
 
-        <div className="flex items-center justify-between mt-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => go(-1)}
-              disabled={clamped <= 0}
-              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[var(--ink)]"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => go(1)}
-              disabled={clamped >= maxIndex}
-              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[var(--ink)]"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            <div className="w-32 h-[3px] bg-black/10 rounded-full ml-3 overflow-hidden">
-              <motion.div
-                className="h-full bg-[var(--orange-deep)] rounded-full"
-                animate={{ width: `${((clamped + 1) / (maxIndex + 1)) * 100}%` }}
-                transition={{ type: "spring", stiffness: 260, damping: 34 }}
-              />
-            </div>
+        <motion.div ref={trackRef} style={{ x }} className="flex gap-5 px-6 will-change-transform">
+          {CATEGORIES.map((c) => (
+            <CategoryCard key={c.name} {...c} delay={0} />
+          ))}
+        </motion.div>
+
+        <div className="mx-auto mt-10 flex w-full max-w-7xl items-center justify-between gap-4 px-6">
+          <div className="h-[3px] w-full max-w-xs overflow-hidden rounded-full bg-black/10">
+            <motion.div
+              className="h-full rounded-full bg-[var(--orange-deep)]"
+              style={{ width: progress }}
+            />
           </div>
-          <a href="#shop" className="pill-btn pill-btn-hover">
+          <a href="#shop" className="pill-btn pill-btn-hover shrink-0">
             Zobrazit vše
           </a>
         </div>
