@@ -127,7 +127,7 @@ function NavDropdown({ label }: { label: string }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-5"
+            className="absolute left-0 top-full z-50 pt-5"
           >
             <div className="w-[760px] max-w-[92vw] rounded-2xl border border-black/5 bg-white p-4 text-[var(--ink)] shadow-2xl">
               <p className="px-1 pb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
