@@ -87,7 +87,9 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
           </Link>
           <div className={`flex items-center gap-5 ${light ? "text-[var(--ink)]" : "text-white"}`}>
             <Search className="w-5 h-5 cursor-pointer hover:opacity-70" />
-            <User className="w-5 h-5 cursor-pointer hover:opacity-70" />
+            <Link to="/prihlaseni" aria-label="Přihlášení" className="hover:opacity-70">
+              <User className="w-5 h-5" />
+            </Link>
             <button onClick={openCart} className="relative" aria-label="Košík">
               <ShoppingBag className="w-5 h-5" />
               {count > 0 && (

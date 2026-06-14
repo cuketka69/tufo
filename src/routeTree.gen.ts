@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProduktyRouteImport } from './routes/produkty'
+import { Route as PrihlaseniRouteImport } from './routes/prihlaseni'
 import { Route as ONasRouteImport } from './routes/o-nas'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +24,11 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 const ProduktyRoute = ProduktyRouteImport.update({
   id: '/produkty',
   path: '/produkty',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrihlaseniRoute = PrihlaseniRouteImport.update({
+  id: '/prihlaseni',
+  path: '/prihlaseni',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ONasRoute = ONasRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/o-nas': typeof ONasRoute
+  '/prihlaseni': typeof PrihlaseniRoute
   '/produkty': typeof ProduktyRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/o-nas': typeof ONasRoute
+  '/prihlaseni': typeof PrihlaseniRoute
   '/produkty': typeof ProduktyRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/o-nas': typeof ONasRoute
+  '/prihlaseni': typeof PrihlaseniRoute
   '/produkty': typeof ProduktyRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/o-nas'
+    | '/prihlaseni'
     | '/produkty'
     | '/admin/categories'
     | '/admin/customers'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/o-nas'
+    | '/prihlaseni'
     | '/produkty'
     | '/admin/categories'
     | '/admin/customers'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/o-nas'
+    | '/prihlaseni'
     | '/produkty'
     | '/admin/categories'
     | '/admin/customers'
@@ -149,6 +161,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   ONasRoute: typeof ONasRoute
+  PrihlaseniRoute: typeof PrihlaseniRoute
   ProduktyRoute: typeof ProduktyRoute
   ProduktIdRoute: typeof ProduktIdRoute
 }
@@ -160,6 +173,13 @@ declare module '@tanstack/react-router' {
       path: '/produkty'
       fullPath: '/produkty'
       preLoaderRoute: typeof ProduktyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prihlaseni': {
+      id: '/prihlaseni'
+      path: '/prihlaseni'
+      fullPath: '/prihlaseni'
+      preLoaderRoute: typeof PrihlaseniRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/o-nas': {
@@ -252,6 +272,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   ONasRoute: ONasRoute,
+  PrihlaseniRoute: PrihlaseniRoute,
   ProduktyRoute: ProduktyRoute,
   ProduktIdRoute: ProduktIdRoute,
 }
