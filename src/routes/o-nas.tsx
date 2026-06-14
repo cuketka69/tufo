@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, animate, useInView } from "framer-motion";
 import { ArrowLeft, ArrowRight, Award, Factory, Globe, Recycle, MapPin, Phone, Mail } from "lucide-react";
 
 import blackLogo from "@/assets/blogo.webp";
@@ -140,7 +140,10 @@ function AboutPage() {
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-6 py-10 md:grid-cols-4">
           {STATS.map((s) => (
             <div key={s.label} className="text-center">
-              <div className="font-display text-4xl text-[var(--orange-deep)] md:text-5xl">{s.value}</div>
+              <CountUp
+                value={s.value}
+                className="font-display text-4xl text-[var(--orange-deep)] md:text-5xl"
+              />
               <div className="mt-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {s.label}
               </div>
@@ -280,6 +283,31 @@ function AboutPage() {
           </Link>
         </div>
       </section>
+    </div>
+  );
+}
+
+function CountUp({ value, className }: { value: string; className?: string }) {
+  const target = parseInt(value.replace(/\D/g, ""), 10) || 0;
+  const suffix = value.replace(/[0-9\s]/g, "");
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(0, target, {
+      duration: 1.6,
+      ease: "easeOut",
+      onUpdate: (v) => setDisplay(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [inView, target]);
+
+  return (
+    <div ref={ref} className={className}>
+      {display}
+      {suffix}
     </div>
   );
 }
