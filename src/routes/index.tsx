@@ -231,7 +231,7 @@ function CategorySection() {
       className="relative bg-[var(--cream)]"
       style={{ height: sectionHeight ? `${sectionHeight}px` : "300vh" }}
     >
-      <div className="sticky top-0 flex h-screen flex-col justify-between overflow-hidden py-16">
+      <div className="sticky top-0 flex h-screen flex-col justify-between overflow-hidden py-10">
         <div className="mx-auto w-full max-w-7xl px-6 text-center">
           <h2 className="font-display text-3xl uppercase sm:text-5xl md:text-6xl">
             Nakupujte podle kategorie
@@ -283,7 +283,7 @@ function CategoryCard({ name, img, delay }: { name: string; img: string; delay: 
       viewport={{ once: true }}
       transition={{ delay, duration: 0.5 }}
       style={{ transform: `perspective(1000px) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)` }}
-      className="snap-start shrink-0 w-[280px] sm:w-[340px] h-[420px] rounded-3xl overflow-hidden relative group cursor-pointer shadow-xl transition-transform"
+      className="snap-start shrink-0 w-[280px] sm:w-[360px] h-[58vh] min-h-[360px] rounded-3xl overflow-hidden relative group cursor-pointer shadow-xl transition-transform"
     >
       <img
         src={img}
