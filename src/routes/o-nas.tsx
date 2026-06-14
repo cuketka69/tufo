@@ -296,7 +296,7 @@ function ZatecMap() {
       const coords: [number, number] = [50.3274, 13.5453]; // TUFO s.r.o., Žatec
       map = L.map(el, { scrollWheelZoom: false, attributionControl: true }).setView(coords, 15);
 
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
         attribution: "&copy; OpenStreetMap &copy; CARTO",
         maxZoom: 20,
       }).addTo(map);
