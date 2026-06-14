@@ -252,12 +252,12 @@ function AboutPage() {
               </div>
             </div>
 
-            {/* Mapa */}
-            <div className="overflow-hidden rounded-3xl border border-black/5 shadow-sm">
+            {/* Mapa — obarvená do tónů stránky, po najetí myší se vrátí do normálu */}
+            <div className="group overflow-hidden rounded-3xl border-2 border-[var(--orange-deep)]/20 shadow-sm">
               <iframe
                 title="Mapa — TUFO s.r.o., Žatec"
                 src="https://www.google.com/maps?q=TUFO%20s.r.o.%20Pra%C5%BEsk%C3%A1%202715%20%C5%BDatec&z=15&output=embed"
-                className="h-full min-h-[340px] w-full border-0"
+                className="h-full min-h-[340px] w-full border-0 transition-[filter] duration-500 [filter:sepia(0.6)_hue-rotate(-18deg)_saturate(1.5)_contrast(0.95)_brightness(1.02)] group-hover:[filter:none]"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 allowFullScreen
