@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, User, ShoppingBag } from "lucide-react";
+import { Search, User, ShoppingBag, ChevronDown } from "lucide-react";
 
 import whiteLogo from "@/assets/wlogo.webp";
 import blackLogo from "@/assets/blogo.webp";
@@ -113,8 +113,11 @@ function NavDropdown({ label }: { label: string }) {
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      <Link to="/" hash="shop" className={navLinkClass}>
+      <Link to="/" hash="shop" className={`${navLinkClass} inline-flex items-center gap-1`}>
         {label}
+        <ChevronDown
+          className={`h-3.5 w-3.5 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+        />
       </Link>
 
       <AnimatePresence>
