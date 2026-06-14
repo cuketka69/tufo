@@ -22,6 +22,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import wheelImg from "@/assets/wheel.png";
+import handImg from "@/assets/hand.webp";
 import catRoad from "@/assets/silnice.webp";
 import catGravel from "@/assets/gravel.webp";
 import catMtb from "@/assets/mtb.webp";
@@ -739,7 +740,7 @@ function BrandStory() {
           viewport={{ once: true }}
           className="relative aspect-[4/5] rounded-3xl overflow-hidden hero-gradient flex items-center justify-center"
         >
-          <img src={wheelImg} alt="" className="w-[80%]" />
+          <img src={handImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur rounded-2xl p-4">
             <div className="flex items-center justify-between">
               <div>
