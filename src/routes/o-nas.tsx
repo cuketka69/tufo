@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, animate, useInView } from "framer-motion";
 import "leaflet/dist/leaflet.css";
-import { ArrowLeft, ArrowRight, Award, Factory, Globe, Recycle, MapPin, Phone, Mail, Navigation } from "lucide-react";
+import { ArrowRight, Award, Factory, Globe, Recycle, MapPin, Phone, Mail, Navigation } from "lucide-react";
 
-import blackLogo from "@/assets/blogo.webp";
 import { FillButton } from "@/components/fill-button";
+import { SiteHeader } from "@/components/site-header";
 import handImg from "@/assets/hand.webp";
 import productTire from "@/assets/product-tire.jpg";
 import silniceImg from "@/assets/silnice.webp";
@@ -97,23 +97,10 @@ const TIMELINE = [
 function AboutPage() {
   return (
     <div className="min-h-screen bg-[var(--cream)] text-[var(--ink)]">
-      {/* Top bar */}
-      <header className="sticky top-0 z-50 border-b border-black/5 bg-[var(--cream)]/90 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center" aria-label="TUFO">
-            <img src={blackLogo} alt="TUFO" className="h-7 w-auto" width={105} height={42} />
-          </Link>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[var(--ink)]"
-          >
-            <ArrowLeft className="h-4 w-4" /> Zpět na úvod
-          </Link>
-        </div>
-      </header>
+      <SiteHeader solid />
 
       {/* Hero */}
-      <section className="mx-auto grid max-w-7xl items-center gap-10 px-6 py-12 md:grid-cols-2 md:py-20">
+      <section className="mx-auto grid max-w-7xl items-center gap-10 px-6 pt-24 pb-12 md:grid-cols-2 md:pb-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--orange-deep)]">O nás</p>
           <h1 className="mt-4 font-display text-4xl uppercase leading-[0.95] md:text-6xl">
