@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, animate, useInView } from "framer-motion";
 import "leaflet/dist/leaflet.css";
-import { ArrowLeft, ArrowRight, Award, Factory, Globe, Recycle, MapPin, Phone, Mail } from "lucide-react";
+import { ArrowLeft, ArrowRight, Award, Factory, Globe, Recycle, MapPin, Phone, Mail, Navigation } from "lucide-react";
 
 import blackLogo from "@/assets/blogo.webp";
 import handImg from "@/assets/hand.webp";
@@ -251,6 +251,15 @@ function AboutPage() {
                   </a>
                 </div>
               </div>
+
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=TUFO%20s.r.o.%20Pra%C5%BEsk%C3%A1%202715%20%C5%BDatec"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--ink)] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--orange-deep)]"
+              >
+                <Navigation className="h-5 w-5" /> Navigovat
+              </a>
             </div>
 
             {/* Mapa (Leaflet, tmavé CARTO dlaždice) */}
