@@ -29,6 +29,8 @@ import catCx from "@/assets/cyklokros.webp";
 import catTri from "@/assets/triatlon.webp";
 import catTrack from "@/assets/draha.webp";
 import productTire from "@/assets/product-tire.jpg";
+import whiteLogo from "@/assets/wlogo.webp";
+import blackLogo from "@/assets/blogo.webp";
 import { Toaster } from "@/components/ui/sonner";
 import { listActiveProducts, createOrder } from "@/lib/api/eshop.functions";
 import type { Product } from "@/lib/eshop-types";
@@ -157,11 +159,14 @@ function Header({ cartCount, onCart }: { cartCount: number; onCart: () => void }
             Kontakt
           </a>
         </nav>
-        <a
-          href="/"
-          className={`font-black text-2xl tracking-[0.25em] ${scrolled ? "text-[var(--ink)]" : "text-white"}`}
-        >
-          TUFO
+        <a href="/" className="flex items-center" aria-label="TUFO">
+          <img
+            src={scrolled ? blackLogo : whiteLogo}
+            alt="TUFO"
+            className="h-8 w-auto"
+            width={120}
+            height={48}
+          />
         </a>
         <div className={`flex items-center gap-5 ${scrolled ? "text-[var(--ink)]" : "text-white"}`}>
           <Search className="w-5 h-5 cursor-pointer hover:opacity-70" />
