@@ -192,10 +192,10 @@ function Hero() {
   return (
     <section
       ref={ref}
-      className="hero-gradient relative overflow-hidden pt-24 pb-12 md:pt-32 md:pb-20"
+      className="hero-gradient relative overflow-hidden min-h-screen flex flex-col justify-center pt-20 pb-12"
     >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.18),_transparent_60%)] pointer-events-none" />
-      <div className="relative max-w-7xl mx-auto px-6">
+      <div className="relative max-w-7xl mx-auto px-6 w-full">
         {/* Wheel image */}
         <div className="relative flex items-center justify-center h-[420px] md:h-[560px]">
           <motion.img
