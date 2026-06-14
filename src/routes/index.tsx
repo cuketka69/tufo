@@ -1,17 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMemo, useRef, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring } from "framer-motion";
-import { toast } from "sonner";
 import {
-  Search,
-  User,
-  ShoppingBag,
   ChevronLeft,
   ChevronRight,
-  X,
-  Plus,
-  Minus,
   Shield,
   CreditCard,
   Store,
@@ -29,15 +21,13 @@ import catMtb from "@/assets/mtb.webp";
 import catCx from "@/assets/cyklokros.webp";
 import catTri from "@/assets/triatlon.webp";
 import catTrack from "@/assets/draha.webp";
-import productTire from "@/assets/product-tire.jpg";
 import whiteLogo from "@/assets/wlogo.webp";
-import blackLogo from "@/assets/blogo.webp";
 import { Toaster } from "@/components/ui/sonner";
-import { createOrder } from "@/lib/api/eshop.functions";
 import type { Product } from "@/lib/eshop-types";
 import { useShopProducts } from "@/lib/shop";
 import { useCart } from "@/lib/cart";
 import { ProductCard } from "@/components/product-card";
+import { SiteHeader } from "@/components/site-header";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -66,8 +56,7 @@ const FILTERS = ["Vše", "Galusky", "Plášťovky", "Pláště", "Bezdušové TR
 
 function Home() {
   const navigate = useNavigate();
-  const { cart, setCart, addToCart: addCart, total: cartTotal, count: cartCount } = useCart();
-  const [cartOpen, setCartOpen] = useState(false);
+  const { addToCart: addCart, openCart } = useCart();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("Vše");
   const [catIndex, setCatIndex] = useState(0);
 
@@ -75,7 +64,7 @@ function Home() {
 
   const addToCart = (p: Product) => {
     addCart(p);
-    setCartOpen(true);
+    openCart();
   };
 
   const openProduct = (p: Product) => navigate({ to: "/produkt/$id", params: { id: String(p.id) } });
@@ -92,7 +81,7 @@ function Home() {
 
   return (
     <div className="bg-[var(--cream)] text-[var(--ink)] overflow-x-hidden">
-      <Header cartCount={cartCount} onCart={() => setCartOpen(true)} />
+      <SiteHeader />
       <Hero />
       <TrustBar />
       <CategorySection index={catIndex} setIndex={setCatIndex} />
@@ -108,77 +97,8 @@ function Home() {
       <PromoBanner />
       <TopProducts products={topProducts} onAdd={addToCart} onOpen={openProduct} />
       <Footer />
-      <CartDrawer
-        open={cartOpen}
-        onClose={() => setCartOpen(false)}
-        cart={cart}
-        setCart={setCart}
-        total={cartTotal}
-        onOrdered={() => setCart([])}
-      />
       <Toaster position="top-right" richColors />
     </div>
-  );
-}
-
-/* ---------------- HEADER ---------------- */
-function Header({ cartCount, onCart }: { cartCount: number; onCart: () => void }) {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const f = () => setScrolled(window.scrollY > 30);
-    f();
-    window.addEventListener("scroll", f);
-    return () => window.removeEventListener("scroll", f);
-  }, []);
-  return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-[var(--cream)]/90 backdrop-blur-md shadow-sm" : "bg-transparent"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between text-white">
-        <nav
-          className={`hidden md:flex gap-7 text-[11px] font-semibold tracking-[0.18em] uppercase ${scrolled ? "text-[var(--ink)]" : "text-white"}`}
-        >
-          <a href="#shop" className="hover:opacity-70">
-            Pneu
-          </a>
-          <a href="#shop" className="hover:opacity-70">
-            Příslušenství
-          </a>
-          <a href="#story" className="hover:opacity-70">
-            Technologie
-          </a>
-          <a href="#shop" className="hover:opacity-70">
-            Distributoři
-          </a>
-          <a href="#footer" className="hover:opacity-70">
-            Kontakt
-          </a>
-        </nav>
-        <a href="/" className="flex items-center" aria-label="TUFO">
-          <img
-            src={scrolled ? blackLogo : whiteLogo}
-            alt="TUFO"
-            className="h-8 w-auto"
-            width={120}
-            height={48}
-          />
-        </a>
-        <div className={`flex items-center gap-5 ${scrolled ? "text-[var(--ink)]" : "text-white"}`}>
-          <Search className="w-5 h-5 cursor-pointer hover:opacity-70" />
-          <User className="w-5 h-5 cursor-pointer hover:opacity-70" />
-          <button onClick={onCart} className="relative">
-            <ShoppingBag className="w-5 h-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-[var(--ink)] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                {cartCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-    </header>
   );
 }
 
@@ -683,238 +603,3 @@ function Footer() {
 }
 
 /* ---------------- CART DRAWER ---------------- */
-type CheckoutForm = {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  zip: string;
-  note: string;
-};
-
-const EMPTY_CHECKOUT: CheckoutForm = {
-  name: "",
-  email: "",
-  phone: "",
-  address: "",
-  city: "",
-  zip: "",
-  note: "",
-};
-
-function CartDrawer({
-  open,
-  onClose,
-  cart,
-  setCart,
-  total,
-  onOrdered,
-}: {
-  open: boolean;
-  onClose: () => void;
-  cart: { p: Product; qty: number }[];
-  setCart: React.Dispatch<React.SetStateAction<{ p: Product; qty: number }[]>>;
-  total: number;
-  onOrdered: () => void;
-}) {
-  const [step, setStep] = useState<"cart" | "checkout">("cart");
-  const [form, setForm] = useState<CheckoutForm>(EMPTY_CHECKOUT);
-
-  const setQty = (id: number, d: number) =>
-    setCart((c) =>
-      c.flatMap((x) => {
-        if (x.p.id !== id) return [x];
-        const q = x.qty + d;
-        return q <= 0 ? [] : [{ ...x, qty: q }];
-      }),
-    );
-
-  const orderMut = useMutation({
-    mutationFn: () =>
-      createOrder({
-        data: {
-          customer: {
-            name: form.name,
-            email: form.email,
-            phone: form.phone || undefined,
-            address: form.address || undefined,
-            city: form.city || undefined,
-            zip: form.zip || undefined,
-          },
-          items: cart.map((x) => ({ product_id: x.p.id, qty: x.qty })),
-          note: form.note || undefined,
-        },
-      }),
-    onSuccess: (res) => {
-      toast.success(`Objednávka ${res.order_number} odeslána. Děkujeme!`);
-      onOrdered();
-      setForm(EMPTY_CHECKOUT);
-      setStep("cart");
-      onClose();
-    },
-    onError: (e: Error) => toast.error(e.message || "Objednávku se nepodařilo odeslat"),
-  });
-
-  const upd = (k: keyof CheckoutForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
-
-  return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-[60]"
-          />
-          <motion.aside
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-white z-[70] flex flex-col"
-          >
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="font-display text-xl uppercase">
-                {step === "cart" ? "Košík" : "Pokladna"}
-              </h3>
-              <button
-                onClick={() => {
-                  setStep("cart");
-                  onClose();
-                }}
-                className="w-8 h-8 rounded-full hover:bg-black/5 flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {step === "cart" ? (
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {cart.length === 0 && (
-                  <p className="text-center text-muted-foreground py-12 text-sm">
-                    Váš košík je prázdný.
-                  </p>
-                )}
-                {cart.map(({ p, qty }) => (
-                  <div key={p.id} className="flex gap-4 items-center">
-                    <img
-                      src={p.image || productTire}
-                      alt=""
-                      className="w-16 h-16 rounded-lg object-cover bg-[var(--cream)]"
-                    />
-                    <div className="flex-1">
-                      <p className="font-display text-sm uppercase">{p.name}</p>
-                      <p className="text-xs text-muted-foreground">{p.type}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <button
-                          onClick={() => setQty(p.id, -1)}
-                          className="w-6 h-6 rounded-full bg-black/5 flex items-center justify-center"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="text-sm font-bold w-5 text-center">{qty}</span>
-                        <button
-                          onClick={() => setQty(p.id, 1)}
-                          className="w-6 h-6 rounded-full bg-black/5 flex items-center justify-center"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                    <span className="font-bold">{p.price * qty} Kč</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex-1 overflow-y-auto p-6 space-y-3">
-                <CheckoutInput placeholder="Jméno a příjmení *" value={form.name} onChange={upd("name")} />
-                <CheckoutInput placeholder="E-mail *" type="email" value={form.email} onChange={upd("email")} />
-                <CheckoutInput placeholder="Telefon" value={form.phone} onChange={upd("phone")} />
-                <CheckoutInput placeholder="Ulice a číslo" value={form.address} onChange={upd("address")} />
-                <div className="grid grid-cols-2 gap-3">
-                  <CheckoutInput placeholder="PSČ" value={form.zip} onChange={upd("zip")} />
-                  <CheckoutInput placeholder="Město" value={form.city} onChange={upd("city")} />
-                </div>
-                <textarea
-                  placeholder="Poznámka k objednávce"
-                  value={form.note}
-                  onChange={upd("note")}
-                  rows={3}
-                  className="w-full rounded-xl border border-black/10 px-4 py-2.5 text-sm outline-none focus:border-[var(--ink)]"
-                />
-                <div className="pt-2 space-y-2 text-sm">
-                  {cart.map(({ p, qty }) => (
-                    <div key={p.id} className="flex justify-between text-muted-foreground">
-                      <span>
-                        {p.name} × {qty}
-                      </span>
-                      <span>{p.price * qty} Kč</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="border-t p-6 space-y-4">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Celkem</span>
-                <span className="font-black text-xl">{total} Kč</span>
-              </div>
-              {step === "cart" ? (
-                <button
-                  onClick={() => setStep("checkout")}
-                  className="pill-btn pill-btn-hover w-full justify-center"
-                  disabled={cart.length === 0}
-                >
-                  Přejít k pokladně
-                </button>
-              ) : (
-                <div className="space-y-2">
-                  <button
-                    onClick={() => orderMut.mutate()}
-                    className="pill-btn pill-btn-hover w-full justify-center"
-                    disabled={orderMut.isPending || !form.name || !form.email}
-                  >
-                    {orderMut.isPending ? "Odesílám…" : "Odeslat objednávku"}
-                  </button>
-                  <button
-                    onClick={() => setStep("cart")}
-                    className="w-full text-center text-sm text-muted-foreground hover:text-[var(--ink)]"
-                  >
-                    ← Zpět do košíku
-                  </button>
-                </div>
-              )}
-            </div>
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
-
-function CheckoutInput({
-  placeholder,
-  value,
-  onChange,
-  type = "text",
-}: {
-  placeholder: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  type?: string;
-}) {
-  return (
-    <input
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      className="w-full rounded-xl border border-black/10 px-4 py-2.5 text-sm outline-none focus:border-[var(--ink)]"
-    />
-  );
-}

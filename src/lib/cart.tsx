@@ -11,6 +11,9 @@ type CartContextValue = {
   clear: () => void;
   total: number;
   count: number;
+  isOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -29,6 +32,7 @@ function load(): CartItem[] {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>(load);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -55,8 +59,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       clear,
       total: cart.reduce((s, x) => s + x.p.price * x.qty, 0),
       count: cart.reduce((s, x) => s + x.qty, 0),
+      isOpen,
+      openCart: () => setIsOpen(true),
+      closeCart: () => setIsOpen(false),
     }),
-    [cart],
+    [cart, isOpen],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

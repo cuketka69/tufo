@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence } from "framer-motion";
-import { ArrowLeft, ShoppingBag, Search } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { toast } from "sonner";
 
-import blackLogo from "@/assets/blogo.webp";
 import { Toaster } from "@/components/ui/sonner";
 import { ProductCard } from "@/components/product-card";
+import { SiteHeader } from "@/components/site-header";
 import { useShopProducts } from "@/lib/shop";
 import { useCart } from "@/lib/cart";
 import type { Product } from "@/lib/eshop-types";
@@ -26,7 +26,7 @@ const FILTERS = ["Vše", "Galusky", "Plášťovky", "Pláště", "Bezdušové TR
 function ProductsPage() {
   const navigate = useNavigate();
   const { products, isLoading } = useShopProducts();
-  const { addToCart, count } = useCart();
+  const { addToCart } = useCart();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("Vše");
   const [search, setSearch] = useState("");
 
@@ -42,24 +42,9 @@ function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-[var(--cream)] text-[var(--ink)]">
-      {/* Top bar */}
-      <header className="sticky top-0 z-50 border-b border-black/5 bg-[var(--cream)]/90 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center" aria-label="TUFO">
-            <img src={blackLogo} alt="TUFO" className="h-7 w-auto" width={105} height={42} />
-          </Link>
-          <Link to="/" className="relative" aria-label="Košík">
-            <ShoppingBag className="h-5 w-5" />
-            {count > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--ink)] text-[10px] font-bold text-white">
-                {count}
-              </span>
-            )}
-          </Link>
-        </div>
-      </header>
+      <SiteHeader solid />
 
-      <main className="mx-auto max-w-7xl px-6 py-10 md:py-14">
+      <main className="mx-auto max-w-7xl px-6 pt-24 pb-10 md:pb-14">
         <Link
           to="/"
           className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-[var(--ink)]"
