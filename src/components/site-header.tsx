@@ -129,24 +129,24 @@ function NavDropdown({ label }: { label: string }) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-5"
           >
-            <div className="w-[460px] rounded-2xl border border-black/5 bg-white p-3 text-[var(--ink)] shadow-2xl">
-              <p className="px-2 pb-2 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            <div className="w-[760px] max-w-[92vw] rounded-2xl border border-black/5 bg-white p-4 text-[var(--ink)] shadow-2xl">
+              <p className="px-1 pb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                 Kategorie
               </p>
-              <div className="grid grid-cols-2 gap-1">
+              <div className="grid grid-cols-6 gap-3">
                 {CATEGORIES.map((c) => (
                   <Link
                     key={c.name}
                     to="/produkty"
-                    className="group/item flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-[var(--cream)]"
+                    className="group/item flex flex-col items-center gap-2 rounded-xl p-2 transition-colors hover:bg-[var(--cream)]"
                   >
                     <img
                       src={c.img}
                       alt=""
-                      className="h-12 w-12 rounded-lg object-cover"
+                      className="aspect-square w-full rounded-xl object-cover transition-transform duration-300 group-hover/item:scale-105"
                       loading="lazy"
                     />
-                    <span className="text-sm font-semibold transition-colors group-hover/item:text-[var(--orange-deep)]">
+                    <span className="text-center text-xs font-semibold transition-colors group-hover/item:text-[var(--orange-deep)]">
                       {c.name}
                     </span>
                   </Link>
