@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring } from "framer-motion";
 import {
+  ChevronLeft,
+  ChevronRight,
   Shield,
   CreditCard,
   Store,
@@ -195,64 +197,68 @@ function TrustBar() {
 
 /* ---------------- CATEGORY SECTION ---------------- */
 function CategorySection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [maxScroll, setMaxScroll] = useState(0);
-  const [sectionHeight, setSectionHeight] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    const measure = () => {
-      const track = trackRef.current;
-      if (!track) return;
-      const ms = Math.max(0, track.scrollWidth - window.innerWidth + 48);
-      setMaxScroll(ms);
-      setSectionHeight(window.innerHeight + ms);
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    // přeměřit po načtení obrázků
-    const t = setTimeout(measure, 300);
-    return () => {
-      window.removeEventListener("resize", measure);
-      clearTimeout(t);
-    };
-  }, []);
+  const onScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setProgress(max > 0 ? (el.scrollLeft / max) * 100 : 0);
+  };
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start center", "end end"],
-  });
-  const x = useTransform(scrollYProgress, [0, 1], [0, -maxScroll]);
-  const progress = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  const scroll = (dir: 1 | -1) => scrollRef.current?.scrollBy({ left: dir * 380, behavior: "smooth" });
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative bg-[var(--cream)]"
-      style={{ height: sectionHeight ? `${sectionHeight}px` : "300vh" }}
-    >
-      <div className="sticky top-0 flex h-screen flex-col justify-between overflow-hidden py-10">
-        <div className="mx-auto w-full max-w-7xl px-6 text-center">
+    <section className="bg-[var(--cream)] py-20 md:py-28">
+      <div className="max-w-7xl mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
           <h2 className="font-display text-3xl uppercase sm:text-5xl md:text-6xl">
             Nakupujte podle kategorie
           </h2>
           <p className="mt-3 text-sm text-muted-foreground">
             Najděte ideální plášť šitý na míru vaší disciplíně
           </p>
-        </div>
-
-        <motion.div ref={trackRef} style={{ x }} className="flex gap-5 px-6 will-change-transform">
-          {CATEGORIES.map((c) => (
-            <CategoryCard key={c.name} {...c} delay={0} />
-          ))}
         </motion.div>
 
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-6">
-          <div className="h-[3px] w-full max-w-xs overflow-hidden rounded-full bg-black/10">
-            <motion.div
-              className="h-full rounded-full bg-[var(--orange-deep)]"
-              style={{ width: progress }}
-            />
+        <div
+          ref={scrollRef}
+          onScroll={onScroll}
+          className="flex gap-5 overflow-x-auto scrollbar-hide -mx-6 px-6 pb-2 snap-x snap-mandatory"
+          style={{ scrollbarWidth: "none" }}
+        >
+          {CATEGORIES.map((c, i) => (
+            <CategoryCard key={c.name} {...c} delay={i * 0.08} />
+          ))}
+        </div>
+
+        <div className="mt-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => scroll(-1)}
+              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition"
+              aria-label="Předchozí"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => scroll(1)}
+              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition"
+              aria-label="Další"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <div className="ml-3 h-[3px] w-32 overflow-hidden rounded-full bg-black/10">
+              <div
+                className="h-full rounded-full bg-[var(--orange-deep)] transition-all"
+                style={{ width: `${Math.max(8, progress)}%` }}
+              />
+            </div>
           </div>
           <a href="#shop" className="pill-btn pill-btn-hover shrink-0">
             Zobrazit vše
@@ -283,7 +289,7 @@ function CategoryCard({ name, img, delay }: { name: string; img: string; delay: 
       viewport={{ once: true }}
       transition={{ delay, duration: 0.5 }}
       style={{ transform: `perspective(1000px) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)` }}
-      className="snap-start shrink-0 w-[280px] sm:w-[360px] h-[58vh] min-h-[360px] rounded-3xl overflow-hidden relative group cursor-pointer shadow-xl transition-transform"
+      className="snap-start shrink-0 w-[280px] sm:w-[340px] h-[420px] rounded-3xl overflow-hidden relative group cursor-pointer shadow-xl transition-transform"
     >
       <img
         src={img}
