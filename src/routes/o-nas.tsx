@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { ArrowLeft, ArrowRight, Award, Factory, Globe, Recycle, MapPin, Phone, Mail, Navigation } from "lucide-react";
 
 import blackLogo from "@/assets/blogo.webp";
+import { FillButton } from "@/components/fill-button";
 import handImg from "@/assets/hand.webp";
 import productTire from "@/assets/product-tire.jpg";
 import silniceImg from "@/assets/silnice.webp";
@@ -252,14 +253,18 @@ function AboutPage() {
                 </div>
               </div>
 
-              <a
-                href="https://www.google.com/maps/dir/?api=1&destination=TUFO%20s.r.o.%20Pra%C5%BEsk%C3%A1%202715%20%C5%BDatec"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--ink)] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--orange-deep)]"
+              <FillButton
+                className="mt-2 w-full"
+                onComplete={() =>
+                  window.open(
+                    "https://www.google.com/maps/dir/?api=1&destination=TUFO%20s.r.o.%20Pra%C5%BEsk%C3%A1%202715%20%C5%BDatec",
+                    "_blank",
+                    "noopener",
+                  )
+                }
               >
-                <Navigation className="h-5 w-5" /> Navigovat
-              </a>
+                <Navigation className="h-4 w-4" /> Navigovat
+              </FillButton>
             </div>
 
             {/* Mapa (Leaflet, tmavé CARTO dlaždice) */}

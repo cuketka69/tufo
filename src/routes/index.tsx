@@ -28,6 +28,7 @@ import { useShopProducts } from "@/lib/shop";
 import { useCart } from "@/lib/cart";
 import { ProductCard } from "@/components/product-card";
 import { SiteHeader } from "@/components/site-header";
+import { FillButton } from "@/components/fill-button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -316,29 +317,10 @@ function CategoryCard({ name, img, delay }: { name: string; img: string; delay: 
 /* ---------------- "Zobrazit všechny produkty" button ---------------- */
 function AllProductsButton() {
   const navigate = useNavigate();
-  const [filling, setFilling] = useState(false);
-
   return (
-    <button
-      onClick={() => setFilling(true)}
-      disabled={filling}
-      className="relative overflow-hidden rounded-full border-2 border-transparent bg-[var(--ink)] px-8 py-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition-colors hover:border-[var(--orange-deep)]"
-    >
-      {/* Oranžová výplň zleva po kliknutí */}
-      <motion.span
-        aria-hidden
-        className="absolute inset-0 origin-left bg-[var(--orange-deep)]"
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: filling ? 1 : 0 }}
-        transition={{ duration: 0.7, ease: "easeInOut" }}
-        onAnimationComplete={() => {
-          if (filling) navigate({ to: "/produkty" });
-        }}
-      />
-      <span className="relative z-10 inline-flex items-center gap-2">
-        Zobrazit všechny produkty <ArrowRight className="h-4 w-4" />
-      </span>
-    </button>
+    <FillButton onComplete={() => navigate({ to: "/produkty" })}>
+      Zobrazit všechny produkty <ArrowRight className="h-4 w-4" />
+    </FillButton>
   );
 }
 
