@@ -151,15 +151,20 @@ function Hero() {
             >
               Česká kvalita od roku 1991
             </motion.p>
-            <motion.a
-              href="#shop"
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
-              className="pill-btn pill-btn-hover mt-6 pointer-events-auto"
+              className="mt-6 pointer-events-auto"
             >
-              Nakoupit
-            </motion.a>
+              <FillButton
+                onComplete={() =>
+                  document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Nakoupit
+              </FillButton>
+            </motion.div>
           </div>
         </div>
       </div>
