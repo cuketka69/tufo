@@ -75,6 +75,7 @@ function Home() {
   const [cart, setCart] = useState<{ p: Product; qty: number }[]>([]);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("Vše");
   const [catIndex, setCatIndex] = useState(0);
+  const [detail, setDetail] = useState<Product | null>(null);
 
   const productsQuery = useQuery({
     queryKey: ["shop", "products"],
@@ -120,11 +121,12 @@ function Home() {
         setFilter={setFilter}
         products={filtered}
         onAdd={addToCart}
+        onOpen={setDetail}
         loading={productsQuery.isLoading}
       />
       <BrandStory />
       <PromoBanner />
-      <TopProducts products={topProducts} onAdd={addToCart} />
+      <TopProducts products={topProducts} onAdd={addToCart} onOpen={setDetail} />
       <Footer />
       <CartDrawer
         open={cartOpen}
@@ -134,6 +136,7 @@ function Home() {
         total={cartTotal}
         onOrdered={() => setCart([])}
       />
+      <ProductModal product={detail} onClose={() => setDetail(null)} onAdd={addToCart} />
       <Toaster position="top-right" richColors />
     </div>
   );
@@ -437,12 +440,14 @@ function ShopSection({
   setFilter,
   products,
   onAdd,
+  onOpen,
   loading,
 }: {
   filter: (typeof FILTERS)[number];
   setFilter: (f: (typeof FILTERS)[number]) => void;
   products: Product[];
   onAdd: (p: Product) => void;
+  onOpen: (p: Product) => void;
   loading?: boolean;
 }) {
   return (
@@ -486,7 +491,7 @@ function ShopSection({
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             <AnimatePresence mode="popLayout">
               {products.map((p, i) => (
-                <ProductCard key={p.id} p={p} delay={i * 0.05} onAdd={onAdd} />
+                <ProductCard key={p.id} p={p} delay={i * 0.05} onAdd={onAdd} onOpen={onOpen} />
               ))}
             </AnimatePresence>
           </div>
@@ -500,10 +505,12 @@ function ProductCard({
   p,
   delay,
   onAdd,
+  onOpen,
 }: {
   p: Product;
   delay: number;
   onAdd: (p: Product) => void;
+  onOpen: (p: Product) => void;
 }) {
   return (
     <motion.div
@@ -512,7 +519,16 @@ function ProductCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ delay, duration: 0.4 }}
-      className="bg-white rounded-[28px] overflow-hidden shadow-sm hover:shadow-xl transition-shadow group flex flex-col"
+      onClick={() => onOpen(p)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(p);
+        }
+      }}
+      className="bg-white rounded-[28px] overflow-hidden shadow-sm hover:shadow-xl transition-shadow group flex flex-col cursor-pointer"
     >
       <div className="relative m-2.5 mb-0 aspect-square rounded-[20px] overflow-hidden bg-gradient-to-b from-[#1a1a1a] to-[#2e2e2e]">
         <img
@@ -548,7 +564,10 @@ function ProductCard({
             {new Intl.NumberFormat("cs-CZ").format(p.price)} Kč
           </span>
           <button
-            onClick={() => onAdd(p)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAdd(p);
+            }}
             disabled={p.stock <= 0}
             className="rounded-full bg-[var(--ink)] text-white text-xs font-bold uppercase tracking-[0.12em] px-5 py-3 hover:bg-[var(--orange-deep)] transition disabled:opacity-40 disabled:hover:bg-[var(--ink)]"
           >
@@ -585,6 +604,103 @@ function Bar({ label, value, tone = "orange" }: { label: string; value: number; 
         {value}%
       </span>
     </div>
+  );
+}
+
+/* ---------------- PRODUCT DETAIL MODAL ---------------- */
+function ProductModal({
+  product,
+  onClose,
+  onAdd,
+}: {
+  product: Product | null;
+  onClose: () => void;
+  onAdd: (p: Product) => void;
+}) {
+  return (
+    <AnimatePresence>
+      {product && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/50 z-[80]"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 26, stiffness: 240 }}
+            className="fixed left-1/2 top-1/2 z-[90] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
+          >
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow hover:bg-black/5"
+              aria-label="Zavřít"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="grid max-h-[90vh] grid-cols-1 overflow-y-auto md:grid-cols-2">
+              <div className="relative aspect-square bg-gradient-to-b from-[#1a1a1a] to-[#2e2e2e] md:aspect-auto">
+                <img
+                  src={product.image || productTire}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                />
+                {!!product.featured && (
+                  <span className="absolute left-4 top-4 rounded-full bg-[var(--ink)] px-4 py-1.5 text-[11px] font-bold tracking-[0.15em] text-white shadow-lg">
+                    TOP
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col p-7">
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--orange-deep)]">
+                  {product.type}
+                  {product.category_name ? ` · ${product.category_name}` : ""}
+                </p>
+                <h2 className="mt-2 font-display text-3xl uppercase leading-tight">{product.name}</h2>
+
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  {product.description ||
+                    "Prémiový cyklistický plášť TUFO vyrobený v České republice. Spojení tradičního gumárenského řemesla a patentované technologie pro maximální výkon."}
+                </p>
+
+                <div className="mt-6 space-y-3">
+                  <Bar label="Trénink" value={product.training} tone="orange" />
+                  <Bar label="Závod" value={product.racing} tone="ink" />
+                </div>
+
+                <div className="mt-5 text-sm">
+                  {product.stock > 0 ? (
+                    <span className="font-semibold text-emerald-600">Skladem ({product.stock} ks)</span>
+                  ) : (
+                    <span className="font-semibold text-rose-600">Vyprodáno</span>
+                  )}
+                </div>
+
+                <div className="mt-auto flex items-center justify-between gap-4 pt-6">
+                  <span className="font-black text-3xl tracking-tight">
+                    {new Intl.NumberFormat("cs-CZ").format(product.price)} Kč
+                  </span>
+                  <button
+                    onClick={() => {
+                      onAdd(product);
+                      onClose();
+                    }}
+                    disabled={product.stock <= 0}
+                    className="rounded-full bg-[var(--ink)] px-7 py-3.5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--orange-deep)] disabled:opacity-40 disabled:hover:bg-[var(--ink)]"
+                  >
+                    Do košíku
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -681,7 +797,15 @@ function PromoBanner() {
 }
 
 /* ---------------- TOP PRODUCTS ---------------- */
-function TopProducts({ products, onAdd }: { products: Product[]; onAdd: (p: Product) => void }) {
+function TopProducts({
+  products,
+  onAdd,
+  onOpen,
+}: {
+  products: Product[];
+  onAdd: (p: Product) => void;
+  onOpen: (p: Product) => void;
+}) {
   if (products.length === 0) return null;
   return (
     <section className="py-20">
@@ -700,7 +824,7 @@ function TopProducts({ products, onAdd }: { products: Product[]; onAdd: (p: Prod
         >
           {products.map((p, i) => (
             <div key={p.id} className="snap-start shrink-0 w-[260px]">
-              <ProductCard p={p} delay={i * 0.05} onAdd={onAdd} />
+              <ProductCard p={p} delay={i * 0.05} onAdd={onAdd} onOpen={onOpen} />
             </div>
           ))}
         </div>
