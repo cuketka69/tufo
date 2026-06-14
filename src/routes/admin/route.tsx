@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { LayoutDashboard, Package, ShoppingCart, Users, Tags, Store } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
+import blackLogo from "@/assets/blogo.webp";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -21,7 +22,7 @@ function AdminLayout() {
         {/* Sidebar */}
         <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r bg-background md:flex">
           <div className="flex h-16 items-center gap-2 border-b px-6">
-            <span className="text-xl font-black tracking-[0.25em]">TUFO</span>
+            <img src={blackLogo} alt="TUFO" className="h-6 w-auto" width={90} height={36} />
             <span className="rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
               Admin
             </span>
