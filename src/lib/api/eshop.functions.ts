@@ -40,6 +40,7 @@ const productInput = z.object({
   stock: z.number().int().min(0),
   image: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
+  color: z.string().nullable().optional(),
   featured: z.boolean().optional(),
   active: z.boolean().optional(),
 });
@@ -49,8 +50,8 @@ export const createProduct = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const info = getDb()
       .prepare(
-        `INSERT INTO products (sku, name, type, category_id, price, training, racing, stock, image, description, featured, active)
-         VALUES (@sku, @name, @type, @category_id, @price, @training, @racing, @stock, @image, @description, @featured, @active)`,
+        `INSERT INTO products (sku, name, type, category_id, price, training, racing, stock, image, description, color, featured, active)
+         VALUES (@sku, @name, @type, @category_id, @price, @training, @racing, @stock, @image, @description, @color, @featured, @active)`,
       )
       .run({
         sku: data.sku,
@@ -63,6 +64,7 @@ export const createProduct = createServerFn({ method: "POST" })
         stock: data.stock,
         image: data.image ?? null,
         description: data.description ?? null,
+        color: data.color ?? null,
         featured: data.featured ? 1 : 0,
         active: data.active === false ? 0 : 1,
       });
@@ -76,7 +78,7 @@ export const updateProduct = createServerFn({ method: "POST" })
       .prepare(
         `UPDATE products SET sku=@sku, name=@name, type=@type, category_id=@category_id,
            price=@price, training=@training, racing=@racing, stock=@stock,
-           image=@image, description=@description, featured=@featured, active=@active
+           image=@image, description=@description, color=@color, featured=@featured, active=@active
          WHERE id=@id`,
       )
       .run({
@@ -91,6 +93,7 @@ export const updateProduct = createServerFn({ method: "POST" })
         stock: data.stock,
         image: data.image ?? null,
         description: data.description ?? null,
+        color: data.color ?? null,
         featured: data.featured ? 1 : 0,
         active: data.active === false ? 0 : 1,
       });

@@ -50,6 +50,7 @@ type FormState = {
   racing: number;
   stock: number;
   description: string;
+  color: string;
   featured: boolean;
   active: boolean;
 };
@@ -64,6 +65,7 @@ const EMPTY: FormState = {
   racing: 0,
   stock: 0,
   description: "",
+  color: "",
   featured: false,
   active: true,
 };
@@ -94,6 +96,7 @@ function ProductsPage() {
         racing: f.racing,
         stock: f.stock,
         description: f.description || null,
+        color: f.color || null,
         featured: f.featured,
         active: f.active,
       };
@@ -143,6 +146,7 @@ function ProductsPage() {
       racing: p.racing,
       stock: p.stock,
       description: p.description ?? "",
+      color: p.color ?? "",
       featured: !!p.featured,
       active: !!p.active,
     });
@@ -322,6 +326,14 @@ function ProductsPage() {
                 />
               </Field>
             </div>
+
+            <Field label="Barva">
+              <Input
+                placeholder="např. Černá, Bílá, Oranžová"
+                value={form.color}
+                onChange={(e) => setForm({ ...form, color: e.target.value })}
+              />
+            </Field>
 
             <Field label="Popis">
               <Textarea

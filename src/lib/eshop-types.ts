@@ -36,6 +36,7 @@ export type Product = {
   stock: number;
   image: string | null;
   description: string | null;
+  color: string | null;
   featured: number;
   active: number;
   created_at: string;

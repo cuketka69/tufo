@@ -49,6 +49,7 @@ function migrate(db: Database.Database) {
       stock       INTEGER NOT NULL DEFAULT 0,
       image       TEXT,
       description TEXT,
+      color       TEXT,
       featured    INTEGER NOT NULL DEFAULT 0,
       active      INTEGER NOT NULL DEFAULT 1,
       created_at  TEXT NOT NULL DEFAULT (datetime('now'))
@@ -89,6 +90,12 @@ function migrate(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
     CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
   `);
+
+  // Lehká migrace: doplnění sloupců do již existujících databází.
+  const cols = db.prepare("PRAGMA table_info(products)").all() as { name: string }[];
+  if (!cols.some((c) => c.name === "color")) {
+    db.exec("ALTER TABLE products ADD COLUMN color TEXT");
+  }
 }
 
 const SEED_CATEGORIES = [
@@ -101,14 +108,14 @@ const SEED_CATEGORIES = [
 ];
 
 const SEED_PRODUCTS = [
-  { sku: "TUF-S33", name: "Tufo S33 Pro", type: "Galusky", category: "silnice", price: 1490, training: 60, racing: 95, stock: 42, featured: 1 },
-  { sku: "TUF-CAL", name: "Tufo Calibra Plus", type: "Plášťovky", category: "silnice", price: 890, training: 75, racing: 85, stock: 88, featured: 0 },
-  { sku: "TUF-GSP", name: "Tufo Gravel Speedero", type: "Bezdušové TR", category: "gravel", price: 1290, training: 80, racing: 80, stock: 31, featured: 1 },
-  { sku: "TUF-XC6", name: "Tufo XC6 TR", type: "Bezdušové TR", category: "mtb", price: 1390, training: 70, racing: 90, stock: 17, featured: 0 },
-  { sku: "TUF-ELR", name: "Tufo Elite Ride", type: "Galusky", category: "silnice", price: 1690, training: 50, racing: 98, stock: 9, featured: 1 },
-  { sku: "TUF-HIC", name: "Tufo C Hi-Composite", type: "Pláště", category: "cyklokros", price: 990, training: 85, racing: 75, stock: 64, featured: 0 },
-  { sku: "TUF-CMD", name: "Tufo Comtura Duo", type: "Plášťovky", category: "triatlon", price: 1190, training: 70, racing: 88, stock: 23, featured: 0 },
-  { sku: "TUF-LEP", name: "Tufo Lepenka tmel", type: "Příslušenství", category: null, price: 290, training: 90, racing: 60, stock: 120, featured: 0 },
+  { sku: "TUF-S33", name: "Tufo S33 Pro", type: "Galusky", category: "silnice", price: 1490, training: 60, racing: 95, stock: 42, featured: 1, color: "Černá" },
+  { sku: "TUF-CAL", name: "Tufo Calibra Plus", type: "Plášťovky", category: "silnice", price: 890, training: 75, racing: 85, stock: 88, featured: 0, color: "Černá" },
+  { sku: "TUF-GSP", name: "Tufo Gravel Speedero", type: "Bezdušové TR", category: "gravel", price: 1290, training: 80, racing: 80, stock: 31, featured: 1, color: "Hnědá" },
+  { sku: "TUF-XC6", name: "Tufo XC6 TR", type: "Bezdušové TR", category: "mtb", price: 1390, training: 70, racing: 90, stock: 17, featured: 0, color: "Černá" },
+  { sku: "TUF-ELR", name: "Tufo Elite Ride", type: "Galusky", category: "silnice", price: 1690, training: 50, racing: 98, stock: 9, featured: 1, color: "Bílá" },
+  { sku: "TUF-HIC", name: "Tufo C Hi-Composite", type: "Pláště", category: "cyklokros", price: 990, training: 85, racing: 75, stock: 64, featured: 0, color: "Oranžová" },
+  { sku: "TUF-CMD", name: "Tufo Comtura Duo", type: "Plášťovky", category: "triatlon", price: 1190, training: 70, racing: 88, stock: 23, featured: 0, color: "Bílá" },
+  { sku: "TUF-LEP", name: "Tufo Lepenka tmel", type: "Příslušenství", category: null, price: 290, training: 90, racing: 60, stock: 120, featured: 0, color: null },
 ];
 
 function seed(db: Database.Database) {
@@ -119,8 +126,8 @@ function seed(db: Database.Database) {
     "INSERT INTO categories (slug, name, sort) VALUES (@slug, @name, @sort)",
   );
   const insertProd = db.prepare(`
-    INSERT INTO products (sku, name, type, category_id, price, training, racing, stock, featured, active)
-    VALUES (@sku, @name, @type, @category_id, @price, @training, @racing, @stock, @featured, 1)
+    INSERT INTO products (sku, name, type, category_id, price, training, racing, stock, color, featured, active)
+    VALUES (@sku, @name, @type, @category_id, @price, @training, @racing, @stock, @color, @featured, 1)
   `);
 
   const tx = db.transaction(() => {
@@ -140,6 +147,7 @@ function seed(db: Database.Database) {
         training: p.training,
         racing: p.racing,
         stock: p.stock,
+        color: p.color ?? null,
         featured: p.featured,
       });
     }
