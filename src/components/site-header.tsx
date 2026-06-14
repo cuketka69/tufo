@@ -146,7 +146,7 @@ function NavDropdown({ label }: { label: string }) {
                       className="h-12 w-12 rounded-lg object-cover"
                       loading="lazy"
                     />
-                    <span className="font-display text-sm uppercase tracking-wide transition-colors group-hover/item:text-[var(--orange-deep)]">
+                    <span className="text-sm font-semibold transition-colors group-hover/item:text-[var(--orange-deep)]">
                       {c.name}
                     </span>
                   </Link>
