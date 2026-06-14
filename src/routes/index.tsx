@@ -840,7 +840,7 @@ function Footer() {
     <footer id="footer" className="bg-[var(--ink)] text-white pt-20 pb-10 mt-10">
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10">
         <div>
-          <h3 className="font-display text-2xl tracking-[0.25em] mb-4">TUFO</h3>
+          <img src={whiteLogo} alt="TUFO" className="h-9 w-auto mb-4" width={135} height={54} />
           <p className="text-sm text-white/60 leading-relaxed">
             Český výrobce prémiových cyklistických plášťů a galusek od roku 1991.
           </p>
