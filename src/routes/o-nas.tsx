@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Award, Factory, Globe, Recycle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Award, Factory, Globe, Recycle, MapPin, Phone, Mail } from "lucide-react";
 
 import blackLogo from "@/assets/blogo.webp";
 import handImg from "@/assets/hand.webp";
@@ -163,6 +163,71 @@ function AboutPage() {
               <div className="border-l-2 border-black/10 pl-5 text-muted-foreground">{t.text}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Kde nás najdete */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
+          <h2 className="mb-10 font-display text-3xl uppercase md:text-4xl">Kde nás najdete</h2>
+          <div className="grid gap-8 md:grid-cols-[1fr_1.4fr] md:items-stretch">
+            {/* Kontaktní info */}
+            <div className="space-y-5">
+              <div className="flex gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--orange-deep)]/10 text-[var(--orange-deep)]">
+                  <MapPin className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-display text-lg uppercase leading-tight">TUFO s.r.o.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Pražská 2715
+                    <br />
+                    438 01 Žatec
+                    <br />
+                    Česká republika
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--orange-deep)]/10 text-[var(--orange-deep)]">
+                  <Phone className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Telefon
+                  </p>
+                  <a href="tel:+420415710811" className="text-sm hover:text-[var(--orange-deep)]">
+                    +420 415 710 811
+                  </a>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--orange-deep)]/10 text-[var(--orange-deep)]">
+                  <Mail className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    E-mail
+                  </p>
+                  <a href="mailto:tufo@tufo.cz" className="text-sm hover:text-[var(--orange-deep)]">
+                    tufo@tufo.cz
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Mapa */}
+            <div className="overflow-hidden rounded-3xl border border-black/5 shadow-sm">
+              <iframe
+                title="Mapa — TUFO s.r.o., Žatec"
+                src="https://www.google.com/maps?q=TUFO%20s.r.o.%20Pra%C5%BEsk%C3%A1%202715%20%C5%BDatec&z=15&output=embed"
+                className="h-full min-h-[340px] w-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+          </div>
         </div>
       </section>
 
