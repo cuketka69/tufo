@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, animate, useInView } from "framer-motion";
+import "leaflet/dist/leaflet.css";
 import { ArrowLeft, ArrowRight, Award, Factory, Globe, Recycle, MapPin, Phone, Mail } from "lucide-react";
 
 import blackLogo from "@/assets/blogo.webp";
@@ -252,16 +253,9 @@ function AboutPage() {
               </div>
             </div>
 
-            {/* Mapa — obarvená do tónů stránky, po najetí myší se vrátí do normálu */}
-            <div className="group overflow-hidden rounded-3xl border-2 border-[var(--orange-deep)]/20 shadow-sm">
-              <iframe
-                title="Mapa — TUFO s.r.o., Žatec"
-                src="https://www.google.com/maps?q=TUFO%20s.r.o.%20Pra%C5%BEsk%C3%A1%202715%20%C5%BDatec&z=15&output=embed"
-                className="h-full min-h-[340px] w-full border-0 transition-[filter] duration-500 [filter:sepia(0.6)_hue-rotate(-18deg)_saturate(1.5)_contrast(0.95)_brightness(1.02)] group-hover:[filter:none]"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-              />
+            {/* Mapa (Leaflet, tmavé CARTO dlaždice) */}
+            <div className="overflow-hidden rounded-3xl border-2 border-[var(--orange-deep)]/20 shadow-sm">
+              <ZatecMap />
             </div>
           </div>
         </div>
@@ -285,6 +279,44 @@ function AboutPage() {
       </section>
     </div>
   );
+}
+
+function ZatecMap() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let map: import("leaflet").Map | undefined;
+    let cancelled = false;
+
+    (async () => {
+      const L = (await import("leaflet")).default;
+      const el = ref.current as (HTMLDivElement & { _leaflet_id?: number }) | null;
+      if (cancelled || !el || el._leaflet_id) return;
+
+      const coords: [number, number] = [50.3274, 13.5453]; // TUFO s.r.o., Žatec
+      map = L.map(el, { scrollWheelZoom: false, attributionControl: true }).setView(coords, 15);
+
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap &copy; CARTO",
+        maxZoom: 20,
+      }).addTo(map);
+
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="width:22px;height:22px;border-radius:9999px;background:#f97316;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)"></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+      });
+      L.marker(coords, { icon }).addTo(map).bindPopup("TUFO s.r.o.<br>Pražská 2715, Žatec");
+    })();
+
+    return () => {
+      cancelled = true;
+      map?.remove();
+    };
+  }, []);
+
+  return <div ref={ref} className="h-full min-h-[340px] w-full" />;
 }
 
 function CountUp({ value, className }: { value: string; className?: string }) {
