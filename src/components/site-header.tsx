@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, User, ShoppingBag, ChevronDown } from "lucide-react";
+import { User, ShoppingBag, ChevronDown } from "lucide-react";
 
 import whiteLogo from "@/assets/wlogo.webp";
 import blackLogo from "@/assets/blogo.webp";
@@ -13,7 +13,7 @@ import triatlonImg from "@/assets/triatlon.webp";
 import drahaImg from "@/assets/draha.webp";
 import { useCart } from "@/lib/cart";
 import { CartDrawer } from "@/components/cart-drawer";
-import { SearchOverlay } from "@/components/search-overlay";
+import { HeaderSearch } from "@/components/header-search";
 
 const NAV = [
   { label: "Pneu", hash: "shop", dropdown: true },
@@ -43,7 +43,6 @@ const navLinkClass =
 export function SiteHeader({ solid = false }: { solid?: boolean }) {
   const { count, isOpen, openCart, closeCart } = useCart();
   const [scrolled, setScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (solid) return;
@@ -88,9 +87,7 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
             />
           </Link>
           <div className={`flex items-center gap-5 ${light ? "text-[var(--ink)]" : "text-white"}`}>
-            <button onClick={() => setSearchOpen(true)} aria-label="Hledat" className="hover:opacity-70">
-              <Search className="w-5 h-5" />
-            </button>
+            <HeaderSearch />
             <Link to="/prihlaseni" aria-label="Přihlášení" className="hover:opacity-70">
               <User className="w-5 h-5" />
             </Link>
@@ -106,7 +103,6 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
         </div>
       </header>
       <CartDrawer open={isOpen} onClose={closeCart} />
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }
