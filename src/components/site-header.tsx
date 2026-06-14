@@ -48,7 +48,12 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
             }`}
           >
             {NAV.map((item, i) => (
-              <Link key={i} to="/" hash={item.hash} className="hover:opacity-70">
+              <Link
+                key={i}
+                to="/"
+                hash={item.hash}
+                className="relative after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:content-[''] hover:after:scale-x-100"
+              >
                 {item.label}
               </Link>
             ))}
