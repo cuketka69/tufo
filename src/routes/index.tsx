@@ -123,6 +123,9 @@ function Hero() {
             src={wheelImg}
             alt="Cyklistické kolo Tufo"
             style={{ rotate }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1] }}
             className="w-[90%] max-w-[640px] drop-shadow-[0_30px_60px_rgba(0,0,0,0.45)] select-none pointer-events-none"
             draggable={false}
             width={1024}
@@ -131,29 +134,39 @@ function Hero() {
 
           {/* Headline overlay */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+            <h1
               className="text-white text-4xl sm:text-6xl md:text-7xl leading-[0.95] uppercase font-display tracking-tight max-w-3xl px-4"
               style={{ textShadow: "0 4px 30px rgba(0,0,0,0.35)" }}
             >
-              Jeď za
-              <br />
-              hranice
-            </motion.h1>
+              <motion.span
+                className="block"
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1], delay: 0.25 }}
+              >
+                Jeď za
+              </motion.span>
+              <motion.span
+                className="block"
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1], delay: 0.38 }}
+              >
+                hranice
+              </motion.span>
+            </h1>
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.55 }}
               className="text-white/90 mt-4 text-xs sm:text-sm uppercase tracking-[0.3em] font-semibold"
             >
               Česká kvalita od roku 1991
             </motion.p>
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
+              transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.7 }}
               className="mt-6 pointer-events-auto"
             >
               <FillButton
