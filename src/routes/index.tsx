@@ -13,6 +13,8 @@ import {
   Youtube,
   Instagram,
   ArrowRight,
+  Copy,
+  Check,
 } from "lucide-react";
 import wheelImg from "@/assets/pneu.webp";
 import handImg from "@/assets/hand.webp";
@@ -498,6 +500,14 @@ function BrandStory() {
 
 /* ---------------- PROMO BANNER ---------------- */
 function PromoBanner() {
+  const [copied, setCopied] = useState(false);
+  const copyCode = () => {
+    navigator.clipboard?.writeText("LETO20").then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    });
+  };
+
   return (
     <section className="py-12">
       <div className="max-w-7xl mx-auto px-6">
@@ -505,25 +515,63 @@ function PromoBanner() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="hero-gradient rounded-3xl px-8 md:px-14 py-12 md:py-16 flex flex-col md:flex-row items-center justify-between gap-6 text-white relative overflow-hidden"
+          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+          className="hero-gradient relative overflow-hidden rounded-3xl px-8 py-12 text-white md:px-14 md:py-16"
         >
-          <div className="absolute -right-20 -bottom-20 opacity-30">
-            <img src={wheelImg} alt="" className="w-[340px]" />
+          {/* Puntíkovaný vzor */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.08]"
+            style={{
+              backgroundImage: "radial-gradient(white 1.5px, transparent 1.5px)",
+              backgroundSize: "22px 22px",
+            }}
+          />
+          {/* Světelný nádech */}
+          <div className="pointer-events-none absolute -left-24 -top-28 h-72 w-72 rounded-full bg-white/25 blur-3xl" />
+          {/* Pomalu rotující kolo */}
+          <motion.img
+            src={wheelImg}
+            alt=""
+            aria-hidden
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 48, ease: "linear" }}
+            className="pointer-events-none absolute -bottom-28 -right-16 w-[380px] select-none opacity-25 drop-shadow-2xl"
+          />
+
+          <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-90">Letní akce</p>
+              <h3 className="mt-2 font-display text-3xl uppercase leading-[0.95] md:text-5xl">
+                Využijte 20% slevu
+              </h3>
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <span className="text-sm font-semibold uppercase tracking-wider opacity-90">
+                  s kódem
+                </span>
+                <button
+                  onClick={copyCode}
+                  className="group/coupon inline-flex items-center gap-2 rounded-lg border-2 border-dashed border-white/50 bg-black/25 px-3.5 py-1.5 font-mono text-lg font-bold tracking-widest transition-colors hover:bg-black/40 active:scale-[0.97]"
+                  title="Kliknutím zkopírovat"
+                >
+                  LETO20
+                  {copied ? (
+                    <Check className="h-4 w-4 text-emerald-300" />
+                  ) : (
+                    <Copy className="h-4 w-4 opacity-70 transition-opacity group-hover/coupon:opacity-100" />
+                  )}
+                </button>
+                <span className="text-xs opacity-80">{copied ? "Zkopírováno!" : "Klikni a zkopíruj"}</span>
+              </div>
+              <p className="mt-3 text-xs opacity-75">Platí do 31. 8. na celý sortiment.</p>
+            </div>
+
+            <Link
+              to="/produkty"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-[var(--ink)] transition-transform duration-200 ease-out hover:scale-[1.03] active:scale-[0.97]"
+            >
+              Uplatnit slevu <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-          <div className="relative">
-            <p className="text-xs uppercase tracking-[0.3em] font-bold opacity-90">Letní akce</p>
-            <h3 className="text-3xl md:text-5xl uppercase mt-2 leading-none">
-              Využijte 20% slevu
-              <br />s kódem <span className="bg-[var(--ink)] px-3 py-1 rounded-md">LETO20</span>
-            </h3>
-          </div>
-          <a
-            href="#shop"
-            className="pill-btn pill-btn-hover bg-white !text-[var(--ink)] relative"
-            style={{ background: "white", color: "var(--ink)" }}
-          >
-            Uplatnit slevu
-          </a>
         </motion.div>
       </div>
     </section>
