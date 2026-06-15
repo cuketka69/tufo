@@ -119,18 +119,22 @@ function Hero() {
       <div className="relative max-w-7xl mx-auto px-6 w-full">
         {/* Wheel image */}
         <div className="relative flex items-center justify-center h-[420px] md:h-[560px]">
-          <motion.img
-            src={wheelImg}
-            alt="Cyklistické kolo Tufo"
-            style={{ rotate }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1] }}
-            className="w-[90%] max-w-[640px] drop-shadow-[0_30px_60px_rgba(0,0,0,0.45)] select-none pointer-events-none"
-            draggable={false}
-            width={1024}
-            height={1024}
-          />
+          <motion.div
+            initial={{ opacity: 0, rotate: -45 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            transition={{ type: "spring", duration: 1.2, bounce: 0.18 }}
+            className="flex w-[90%] max-w-[640px] items-center justify-center"
+          >
+            <motion.img
+              src={wheelImg}
+              alt="Cyklistické kolo Tufo"
+              style={{ rotate }}
+              className="w-full drop-shadow-[0_30px_60px_rgba(0,0,0,0.45)] select-none pointer-events-none"
+              draggable={false}
+              width={1024}
+              height={1024}
+            />
+          </motion.div>
 
           {/* Headline overlay */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
