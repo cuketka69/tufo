@@ -499,6 +499,16 @@ function BrandStory() {
 }
 
 /* ---------------- PROMO BANNER ---------------- */
+// Nastříhané (vykrojené) okraje kupónu — půlkolečka po stranách přes CSS mask.
+const COUPON_NOTCH: React.CSSProperties = {
+  WebkitMaskImage:
+    "radial-gradient(circle 9px at 0 50%, transparent 9px, #000 9.5px), radial-gradient(circle 9px at 100% 50%, transparent 9px, #000 9.5px)",
+  WebkitMaskComposite: "source-in",
+  maskImage:
+    "radial-gradient(circle 9px at 0 50%, transparent 9px, #000 9.5px), radial-gradient(circle 9px at 100% 50%, transparent 9px, #000 9.5px)",
+  maskComposite: "intersect",
+};
+
 function PromoBanner() {
   const [copied, setCopied] = useState(false);
   const copyCode = () => {
@@ -544,21 +554,22 @@ function PromoBanner() {
               <h3 className="mt-2 font-display text-3xl uppercase leading-[0.95] md:text-5xl">
                 Využijte 20% slevu
               </h3>
-              <div className="mt-5 flex flex-wrap items-center gap-3">
+              <div className="mt-6 flex flex-wrap items-center gap-4">
                 <span className="text-sm font-semibold uppercase tracking-wider opacity-90">
                   s kódem
                 </span>
                 <button
                   onClick={copyCode}
-                  className="group/coupon inline-flex items-center gap-2 rounded-lg border-2 border-dashed border-white/50 bg-black/25 px-3.5 py-1.5 font-mono text-lg font-bold tracking-widest transition-colors hover:bg-black/40 active:scale-[0.97]"
                   title="Kliknutím zkopírovat"
+                  style={COUPON_NOTCH}
+                  className="group/coupon relative flex items-center gap-3 rounded-xl bg-white py-3 pl-5 pr-4 text-[var(--ink)] shadow-xl transition-transform duration-200 ease-out active:scale-[0.97]"
                 >
-                  LETO20
-                  {copied ? (
-                    <Check className="h-4 w-4 text-emerald-300" />
-                  ) : (
-                    <Copy className="h-4 w-4 opacity-70 transition-opacity group-hover/coupon:opacity-100" />
-                  )}
+                  <span className="font-mono text-2xl font-black tracking-[0.14em] md:text-3xl">
+                    LETO<span className="text-[var(--orange-deep)]">20</span>
+                  </span>
+                  <span className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--ink)] text-white">
+                    {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                  </span>
                 </button>
                 <span className="text-xs opacity-80">{copied ? "Zkopírováno!" : "Klikni a zkopíruj"}</span>
               </div>
