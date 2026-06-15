@@ -18,8 +18,10 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ProduktIdRouteImport } from './routes/produkt.$id'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
+import { Route as AdminNastaveniRouteImport } from './routes/admin/nastaveni'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminAbraRouteImport } from './routes/admin/abra'
 
 const ProduktyRoute = ProduktyRouteImport.update({
   id: '/produkty',
@@ -66,6 +68,11 @@ const AdminOrdersRoute = AdminOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminNastaveniRoute = AdminNastaveniRouteImport.update({
+  id: '/nastaveni',
+  path: '/nastaveni',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
@@ -76,6 +83,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminAbraRoute = AdminAbraRouteImport.update({
+  id: '/abra',
+  path: '/abra',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -83,8 +95,10 @@ export interface FileRoutesByFullPath {
   '/o-nas': typeof ONasRoute
   '/prihlaseni': typeof PrihlaseniRoute
   '/produkty': typeof ProduktyRoute
+  '/admin/abra': typeof AdminAbraRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/nastaveni': typeof AdminNastaveniRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/produkt/$id': typeof ProduktIdRoute
@@ -95,8 +109,10 @@ export interface FileRoutesByTo {
   '/o-nas': typeof ONasRoute
   '/prihlaseni': typeof PrihlaseniRoute
   '/produkty': typeof ProduktyRoute
+  '/admin/abra': typeof AdminAbraRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/nastaveni': typeof AdminNastaveniRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/produkt/$id': typeof ProduktIdRoute
@@ -109,8 +125,10 @@ export interface FileRoutesById {
   '/o-nas': typeof ONasRoute
   '/prihlaseni': typeof PrihlaseniRoute
   '/produkty': typeof ProduktyRoute
+  '/admin/abra': typeof AdminAbraRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/nastaveni': typeof AdminNastaveniRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/produkt/$id': typeof ProduktIdRoute
@@ -124,8 +142,10 @@ export interface FileRouteTypes {
     | '/o-nas'
     | '/prihlaseni'
     | '/produkty'
+    | '/admin/abra'
     | '/admin/categories'
     | '/admin/customers'
+    | '/admin/nastaveni'
     | '/admin/orders'
     | '/admin/products'
     | '/produkt/$id'
@@ -136,8 +156,10 @@ export interface FileRouteTypes {
     | '/o-nas'
     | '/prihlaseni'
     | '/produkty'
+    | '/admin/abra'
     | '/admin/categories'
     | '/admin/customers'
+    | '/admin/nastaveni'
     | '/admin/orders'
     | '/admin/products'
     | '/produkt/$id'
@@ -149,8 +171,10 @@ export interface FileRouteTypes {
     | '/o-nas'
     | '/prihlaseni'
     | '/produkty'
+    | '/admin/abra'
     | '/admin/categories'
     | '/admin/customers'
+    | '/admin/nastaveni'
     | '/admin/orders'
     | '/admin/products'
     | '/produkt/$id'
@@ -231,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrdersRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/nastaveni': {
+      id: '/admin/nastaveni'
+      path: '/nastaveni'
+      fullPath: '/admin/nastaveni'
+      preLoaderRoute: typeof AdminNastaveniRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/customers': {
       id: '/admin/customers'
       path: '/customers'
@@ -245,20 +276,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/abra': {
+      id: '/admin/abra'
+      path: '/abra'
+      fullPath: '/admin/abra'
+      preLoaderRoute: typeof AdminAbraRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
   }
 }
 
 interface AdminRouteRouteChildren {
+  AdminAbraRoute: typeof AdminAbraRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminNastaveniRoute: typeof AdminNastaveniRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminAbraRoute: AdminAbraRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminNastaveniRoute: AdminNastaveniRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminIndexRoute: AdminIndexRoute,

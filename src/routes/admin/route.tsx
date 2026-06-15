@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingCart, Users, Tags, Store } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, Tags, Store, Settings, Plug } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import blackLogo from "@/assets/blogo.webp";
 
@@ -13,6 +13,8 @@ const NAV = [
   { to: "/admin/orders", label: "Objednávky", icon: ShoppingCart },
   { to: "/admin/customers", label: "Zákazníci", icon: Users },
   { to: "/admin/categories", label: "Kategorie", icon: Tags },
+  { to: "/admin/nastaveni", label: "Nastavení", icon: Settings },
+  { to: "/admin/abra", label: "ABRA", icon: Plug },
 ] as const;
 
 function AdminLayout() {

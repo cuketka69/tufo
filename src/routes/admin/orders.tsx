@@ -187,7 +187,16 @@ function OrderDetail({ id, onClose }: { id: number | null; onClose: () => void }
   });
 
   const order = data as
-    | (Order & { items?: OrderItem[]; phone?: string; address?: string; city?: string; zip?: string })
+    | (Order & {
+        items?: OrderItem[];
+        phone?: string;
+        company?: string;
+        ico?: string;
+        dic?: string;
+        address?: string;
+        city?: string;
+        zip?: string;
+      })
     | null
     | undefined;
 
@@ -209,6 +218,14 @@ function OrderDetail({ id, onClose }: { id: number | null; onClose: () => void }
                 Zákazník
               </div>
               <div className="font-medium">{order.customer_name ?? "—"}</div>
+              {order.company && <div className="text-muted-foreground">{order.company}</div>}
+              {(order.ico || order.dic) && (
+                <div className="text-muted-foreground">
+                  {[order.ico && `IČO ${order.ico}`, order.dic && `DIČ ${order.dic}`]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </div>
+              )}
               <div className="text-muted-foreground">{order.customer_email}</div>
               {order.phone && <div className="text-muted-foreground">{order.phone}</div>}
               {(order.address || order.city) && (
@@ -217,6 +234,23 @@ function OrderDetail({ id, onClose }: { id: number | null; onClose: () => void }
                 </div>
               )}
             </div>
+
+            {(order.delivery_method || order.payment_method) && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Doprava
+                  </div>
+                  <div>{order.delivery_method ?? "—"}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Platba
+                  </div>
+                  <div>{order.payment_method ?? "—"}</div>
+                </div>
+              </div>
+            )}
 
             <div>
               <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -243,12 +277,27 @@ function OrderDetail({ id, onClose }: { id: number | null; onClose: () => void }
               </div>
             )}
 
+            {order.shipping > 0 && (
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>Doprava</span>
+                <span>{formatPrice(order.shipping)}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between border-t pt-3 text-base font-bold">
               <span>Celkem</span>
               <span>{formatPrice(order.total)}</span>
             </div>
-            <div className="text-xs text-muted-foreground">
-              Vytvořeno {formatDateTime(order.created_at)}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Vytvořeno {formatDateTime(order.created_at)}</span>
+              <span
+                className={
+                  order.abra_synced
+                    ? "font-semibold text-emerald-600"
+                    : "font-semibold text-amber-600"
+                }
+              >
+                {order.abra_synced ? "ABRA ✓" : "ABRA: nesynchronizováno"}
+              </span>
             </div>
           </div>
         )}

@@ -38,6 +38,12 @@ export type Product = {
   image: string | null;
   description: string | null;
   color: string | null;
+  ean: string | null;
+  vat_rate: number;
+  weight: number | null;
+  unit: string;
+  brand: string | null;
+  abra_id: string | null;
   featured: number;
   active: number;
   created_at: string;
@@ -48,6 +54,9 @@ export type Customer = {
   name: string;
   email: string;
   phone: string | null;
+  company: string | null;
+  ico: string | null;
+  dic: string | null;
   address: string | null;
   city: string | null;
   zip: string | null;
@@ -73,10 +82,39 @@ export type Order = {
   customer_email?: string | null;
   status: OrderStatus;
   total: number;
+  shipping: number;
+  delivery_method: string | null;
+  payment_method: string | null;
   note: string | null;
+  abra_id: string | null;
+  abra_synced: number;
   created_at: string;
   items_count?: number;
   items?: OrderItem[];
+};
+
+export type ShopSettings = {
+  shopName: string;
+  email: string;
+  phone: string;
+  vatRates: number[];
+  deliveryMethods: { name: string; price: number }[];
+  paymentMethods: string[];
+  abra: { url: string; company: string; username: string; enabled: boolean };
+};
+
+export const DEFAULT_SETTINGS: ShopSettings = {
+  shopName: "TUFO s.r.o.",
+  email: "tufo@tufo.cz",
+  phone: "+420 415 710 811",
+  vatRates: [21, 12, 0],
+  deliveryMethods: [
+    { name: "PPL", price: 99 },
+    { name: "Zásilkovna", price: 69 },
+    { name: "Osobní odběr", price: 0 },
+  ],
+  paymentMethods: ["Dobírka", "Bankovní převod", "Platební karta"],
+  abra: { url: "", company: "", username: "", enabled: false },
 };
 
 export type DashboardStats = {

@@ -51,6 +51,12 @@ type FormState = {
   stock: number;
   description: string;
   color: string;
+  ean: string;
+  vat_rate: number;
+  weight: number;
+  unit: string;
+  brand: string;
+  abra_id: string;
   featured: boolean;
   active: boolean;
 };
@@ -66,6 +72,12 @@ const EMPTY: FormState = {
   stock: 0,
   description: "",
   color: "",
+  ean: "",
+  vat_rate: 21,
+  weight: 0,
+  unit: "ks",
+  brand: "TUFO",
+  abra_id: "",
   featured: false,
   active: true,
 };
@@ -97,6 +109,12 @@ function ProductsPage() {
         stock: f.stock,
         description: f.description || null,
         color: f.color || null,
+        ean: f.ean || null,
+        vat_rate: f.vat_rate,
+        weight: f.weight || null,
+        unit: f.unit || "ks",
+        brand: f.brand || null,
+        abra_id: f.abra_id || null,
         featured: f.featured,
         active: f.active,
       };
@@ -147,6 +165,12 @@ function ProductsPage() {
       stock: p.stock,
       description: p.description ?? "",
       color: p.color ?? "",
+      ean: p.ean ?? "",
+      vat_rate: p.vat_rate ?? 21,
+      weight: p.weight ?? 0,
+      unit: p.unit ?? "ks",
+      brand: p.brand ?? "TUFO",
+      abra_id: p.abra_id ?? "",
       featured: !!p.featured,
       active: !!p.active,
     });
@@ -323,6 +347,55 @@ function ProductsPage() {
                   max={100}
                   value={form.racing}
                   onChange={(e) => setForm({ ...form, racing: Number(e.target.value) })}
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Sazba DPH (%)">
+                <Select
+                  value={String(form.vat_rate)}
+                  onValueChange={(v) => setForm({ ...form, vat_rate: Number(v) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[21, 12, 0].map((r) => (
+                      <SelectItem key={r} value={String(r)}>
+                        {r} %
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label="Hmotnost (g)">
+                <Input
+                  type="number"
+                  value={form.weight}
+                  onChange={(e) => setForm({ ...form, weight: Number(e.target.value) })}
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="EAN">
+                <Input value={form.ean} onChange={(e) => setForm({ ...form, ean: e.target.value })} />
+              </Field>
+              <Field label="Jednotka">
+                <Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Značka">
+                <Input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} />
+              </Field>
+              <Field label="ABRA kód">
+                <Input
+                  placeholder="ID/kód v ABRA"
+                  value={form.abra_id}
+                  onChange={(e) => setForm({ ...form, abra_id: e.target.value })}
                 />
               </Field>
             </div>

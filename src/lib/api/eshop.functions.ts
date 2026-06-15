@@ -2,8 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getDb } from "@/lib/db.server";
-import type { Category, Customer, DashboardStats, Order, OrderItem, Product } from "@/lib/eshop-types";
-import { ORDER_STATUSES } from "@/lib/eshop-types";
+import type {
+  Category,
+  Customer,
+  DashboardStats,
+  Order,
+  OrderItem,
+  Product,
+  ShopSettings,
+} from "@/lib/eshop-types";
+import { ORDER_STATUSES, DEFAULT_SETTINGS } from "@/lib/eshop-types";
 
 /* ============================================================= PRODUCTS === */
 
@@ -41,33 +49,49 @@ const productInput = z.object({
   image: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   color: z.string().nullable().optional(),
+  ean: z.string().nullable().optional(),
+  vat_rate: z.number().int().min(0).max(100).optional(),
+  weight: z.number().int().min(0).nullable().optional(),
+  unit: z.string().optional(),
+  brand: z.string().nullable().optional(),
+  abra_id: z.string().nullable().optional(),
   featured: z.boolean().optional(),
   active: z.boolean().optional(),
 });
+
+function productParams(data: z.infer<typeof productInput>) {
+  return {
+    sku: data.sku,
+    name: data.name,
+    type: data.type,
+    category_id: data.category_id ?? null,
+    price: data.price,
+    training: data.training,
+    racing: data.racing,
+    stock: data.stock,
+    image: data.image ?? null,
+    description: data.description ?? null,
+    color: data.color ?? null,
+    ean: data.ean ?? null,
+    vat_rate: data.vat_rate ?? 21,
+    weight: data.weight ?? null,
+    unit: data.unit || "ks",
+    brand: data.brand ?? "TUFO",
+    abra_id: data.abra_id ?? null,
+    featured: data.featured ? 1 : 0,
+    active: data.active === false ? 0 : 1,
+  };
+}
 
 export const createProduct = createServerFn({ method: "POST" })
   .validator(productInput)
   .handler(async ({ data }) => {
     const info = getDb()
       .prepare(
-        `INSERT INTO products (sku, name, type, category_id, price, training, racing, stock, image, description, color, featured, active)
-         VALUES (@sku, @name, @type, @category_id, @price, @training, @racing, @stock, @image, @description, @color, @featured, @active)`,
+        `INSERT INTO products (sku, name, type, category_id, price, training, racing, stock, image, description, color, ean, vat_rate, weight, unit, brand, abra_id, featured, active)
+         VALUES (@sku, @name, @type, @category_id, @price, @training, @racing, @stock, @image, @description, @color, @ean, @vat_rate, @weight, @unit, @brand, @abra_id, @featured, @active)`,
       )
-      .run({
-        sku: data.sku,
-        name: data.name,
-        type: data.type,
-        category_id: data.category_id ?? null,
-        price: data.price,
-        training: data.training,
-        racing: data.racing,
-        stock: data.stock,
-        image: data.image ?? null,
-        description: data.description ?? null,
-        color: data.color ?? null,
-        featured: data.featured ? 1 : 0,
-        active: data.active === false ? 0 : 1,
-      });
+      .run(productParams(data));
     return { id: Number(info.lastInsertRowid) };
   });
 
@@ -78,25 +102,11 @@ export const updateProduct = createServerFn({ method: "POST" })
       .prepare(
         `UPDATE products SET sku=@sku, name=@name, type=@type, category_id=@category_id,
            price=@price, training=@training, racing=@racing, stock=@stock,
-           image=@image, description=@description, color=@color, featured=@featured, active=@active
+           image=@image, description=@description, color=@color, ean=@ean, vat_rate=@vat_rate,
+           weight=@weight, unit=@unit, brand=@brand, abra_id=@abra_id, featured=@featured, active=@active
          WHERE id=@id`,
       )
-      .run({
-        id: data.id,
-        sku: data.sku,
-        name: data.name,
-        type: data.type,
-        category_id: data.category_id ?? null,
-        price: data.price,
-        training: data.training,
-        racing: data.racing,
-        stock: data.stock,
-        image: data.image ?? null,
-        description: data.description ?? null,
-        color: data.color ?? null,
-        featured: data.featured ? 1 : 0,
-        active: data.active === false ? 0 : 1,
-      });
+      .run({ ...productParams(data), id: data.id });
     return { ok: true };
   });
 
@@ -225,7 +235,8 @@ export const getOrder = createServerFn({ method: "GET" })
     const db = getDb();
     const order = db
       .prepare(
-        `SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone, c.address, c.city, c.zip
+        `SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone,
+            c.company, c.ico, c.dic, c.address, c.city, c.zip
          FROM orders o LEFT JOIN customers c ON c.id = o.customer_id WHERE o.id = ?`,
       )
       .get(data.id) as (Order & Record<string, unknown>) | undefined;
@@ -255,6 +266,9 @@ export const createOrder = createServerFn({ method: "POST" })
         name: z.string().min(1),
         email: z.string().email(),
         phone: z.string().optional(),
+        company: z.string().optional(),
+        ico: z.string().optional(),
+        dic: z.string().optional(),
         address: z.string().optional(),
         city: z.string().optional(),
         zip: z.string().optional(),
@@ -262,6 +276,9 @@ export const createOrder = createServerFn({ method: "POST" })
       items: z
         .array(z.object({ product_id: z.number().int(), qty: z.number().int().min(1) }))
         .min(1),
+      deliveryMethod: z.string().optional(),
+      paymentMethod: z.string().optional(),
+      shipping: z.number().int().min(0).optional(),
       note: z.string().optional(),
     }),
   )
@@ -274,39 +291,45 @@ export const createOrder = createServerFn({ method: "POST" })
         .prepare("SELECT id FROM customers WHERE email = ?")
         .get(data.customer.email) as { id: number } | undefined;
       let customerId: number;
+      const c = {
+        name: data.customer.name,
+        phone: data.customer.phone ?? null,
+        company: data.customer.company ?? null,
+        ico: data.customer.ico ?? null,
+        dic: data.customer.dic ?? null,
+        address: data.customer.address ?? null,
+        city: data.customer.city ?? null,
+        zip: data.customer.zip ?? null,
+      };
       if (existing) {
         customerId = existing.id;
         db.prepare(
-          `UPDATE customers SET name=@name, phone=@phone, address=@address, city=@city, zip=@zip WHERE id=@id`,
-        ).run({
-          id: customerId,
-          name: data.customer.name,
-          phone: data.customer.phone ?? null,
-          address: data.customer.address ?? null,
-          city: data.customer.city ?? null,
-          zip: data.customer.zip ?? null,
-        });
+          `UPDATE customers SET name=@name, phone=@phone, company=@company, ico=@ico, dic=@dic,
+             address=@address, city=@city, zip=@zip WHERE id=@id`,
+        ).run({ ...c, id: customerId });
       } else {
         const info = db
           .prepare(
-            `INSERT INTO customers (name, email, phone, address, city, zip)
-             VALUES (@name, @email, @phone, @address, @city, @zip)`,
+            `INSERT INTO customers (name, email, phone, company, ico, dic, address, city, zip)
+             VALUES (@name, @email, @phone, @company, @ico, @dic, @address, @city, @zip)`,
           )
-          .run({
-            name: data.customer.name,
-            email: data.customer.email,
-            phone: data.customer.phone ?? null,
-            address: data.customer.address ?? null,
-            city: data.customer.city ?? null,
-            zip: data.customer.zip ?? null,
-          });
+          .run({ ...c, email: data.customer.email });
         customerId = Number(info.lastInsertRowid);
       }
 
       // create order shell
       const orderInfo = db
-        .prepare("INSERT INTO orders (order_number, customer_id, status, total, note) VALUES (?, ?, 'nová', 0, ?)")
-        .run("TMP", customerId, data.note ?? null);
+        .prepare(
+          "INSERT INTO orders (order_number, customer_id, status, total, shipping, delivery_method, payment_method, note) VALUES (?, ?, 'nová', 0, ?, ?, ?, ?)",
+        )
+        .run(
+          "TMP",
+          customerId,
+          data.shipping ?? 0,
+          data.deliveryMethod ?? null,
+          data.paymentMethod ?? null,
+          data.note ?? null,
+        );
       const orderId = Number(orderInfo.lastInsertRowid);
       const orderNumber = "OBJ" + String(10000 + orderId);
       db.prepare("UPDATE orders SET order_number = ? WHERE id = ?").run(orderNumber, orderId);
@@ -329,6 +352,7 @@ export const createOrder = createServerFn({ method: "POST" })
         decStock.run(it.qty, prod.id);
       }
 
+      total += data.shipping ?? 0;
       db.prepare("UPDATE orders SET total = ? WHERE id = ?").run(total, orderId);
       return { id: orderId, order_number: orderNumber, total };
     });
@@ -423,3 +447,45 @@ export const getDashboardStats = createServerFn({ method: "GET" }).handler(
     };
   },
 );
+
+/* ============================================================= SETTINGS === */
+
+export const getSettings = createServerFn({ method: "GET" }).handler(
+  async (): Promise<ShopSettings> => {
+    const row = getDb().prepare("SELECT value FROM settings WHERE key = 'shop'").get() as
+      | { value: string }
+      | undefined;
+    if (!row) return DEFAULT_SETTINGS;
+    try {
+      return { ...DEFAULT_SETTINGS, ...(JSON.parse(row.value) as Partial<ShopSettings>) };
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  },
+);
+
+export const saveSettings = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      shopName: z.string(),
+      email: z.string(),
+      phone: z.string(),
+      vatRates: z.array(z.number()),
+      deliveryMethods: z.array(z.object({ name: z.string(), price: z.number().int().min(0) })),
+      paymentMethods: z.array(z.string()),
+      abra: z.object({
+        url: z.string(),
+        company: z.string(),
+        username: z.string(),
+        enabled: z.boolean(),
+      }),
+    }),
+  )
+  .handler(async ({ data }) => {
+    getDb()
+      .prepare(
+        "INSERT INTO settings (key, value) VALUES ('shop', @v) ON CONFLICT(key) DO UPDATE SET value = @v",
+      )
+      .run({ v: JSON.stringify(data) });
+    return { ok: true };
+  });

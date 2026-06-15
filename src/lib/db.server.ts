@@ -51,6 +51,12 @@ function migrate(db: Database.Database) {
       image       TEXT,
       description TEXT,
       color       TEXT,
+      ean         TEXT,
+      vat_rate    INTEGER NOT NULL DEFAULT 21,
+      weight      INTEGER,
+      unit        TEXT NOT NULL DEFAULT 'ks',
+      brand       TEXT NOT NULL DEFAULT 'TUFO',
+      abra_id     TEXT,
       featured    INTEGER NOT NULL DEFAULT 0,
       active      INTEGER NOT NULL DEFAULT 1,
       created_at  TEXT NOT NULL DEFAULT (datetime('now'))
@@ -61,6 +67,9 @@ function migrate(db: Database.Database) {
       name       TEXT NOT NULL,
       email      TEXT NOT NULL UNIQUE,
       phone      TEXT,
+      company    TEXT,
+      ico        TEXT,
+      dic        TEXT,
       address    TEXT,
       city       TEXT,
       zip        TEXT,
@@ -68,13 +77,23 @@ function migrate(db: Database.Database) {
     );
 
     CREATE TABLE IF NOT EXISTS orders (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_number TEXT NOT NULL UNIQUE,
-      customer_id  INTEGER REFERENCES customers(id) ON DELETE SET NULL,
-      status       TEXT NOT NULL DEFAULT 'nová',
-      total        INTEGER NOT NULL DEFAULT 0,
-      note         TEXT,
-      created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_number    TEXT NOT NULL UNIQUE,
+      customer_id     INTEGER REFERENCES customers(id) ON DELETE SET NULL,
+      status          TEXT NOT NULL DEFAULT 'nová',
+      total           INTEGER NOT NULL DEFAULT 0,
+      shipping        INTEGER NOT NULL DEFAULT 0,
+      delivery_method TEXT,
+      payment_method  TEXT,
+      note            TEXT,
+      abra_id         TEXT,
+      abra_synced     INTEGER NOT NULL DEFAULT 0,
+      created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS settings (
+      key   TEXT PRIMARY KEY,
+      value TEXT
     );
 
     CREATE TABLE IF NOT EXISTS order_items (
@@ -93,14 +112,27 @@ function migrate(db: Database.Database) {
   `);
 
   // Lehká migrace: doplnění sloupců do již existujících databází.
-  const cols = db.prepare("PRAGMA table_info(products)").all() as { name: string }[];
-  if (!cols.some((c) => c.name === "color")) {
-    db.exec("ALTER TABLE products ADD COLUMN color TEXT");
-  }
-  const catCols = db.prepare("PRAGMA table_info(categories)").all() as { name: string }[];
-  if (!catCols.some((c) => c.name === "group_key")) {
-    db.exec("ALTER TABLE categories ADD COLUMN group_key TEXT NOT NULL DEFAULT 'pneu'");
-  }
+  const addColumn = (table: string, col: string, ddl: string) => {
+    const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+    if (!cols.some((c) => c.name === col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  };
+
+  addColumn("products", "color", "color TEXT");
+  addColumn("products", "ean", "ean TEXT");
+  addColumn("products", "vat_rate", "vat_rate INTEGER NOT NULL DEFAULT 21");
+  addColumn("products", "weight", "weight INTEGER");
+  addColumn("products", "unit", "unit TEXT NOT NULL DEFAULT 'ks'");
+  addColumn("products", "brand", "brand TEXT NOT NULL DEFAULT 'TUFO'");
+  addColumn("products", "abra_id", "abra_id TEXT");
+  addColumn("categories", "group_key", "group_key TEXT NOT NULL DEFAULT 'pneu'");
+  addColumn("customers", "company", "company TEXT");
+  addColumn("customers", "ico", "ico TEXT");
+  addColumn("customers", "dic", "dic TEXT");
+  addColumn("orders", "shipping", "shipping INTEGER NOT NULL DEFAULT 0");
+  addColumn("orders", "delivery_method", "delivery_method TEXT");
+  addColumn("orders", "payment_method", "payment_method TEXT");
+  addColumn("orders", "abra_id", "abra_id TEXT");
+  addColumn("orders", "abra_synced", "abra_synced INTEGER NOT NULL DEFAULT 0");
 }
 
 // Sekce → kategorie (musí odpovídat src/lib/taxonomy.ts)

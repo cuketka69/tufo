@@ -1,20 +1,27 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import productTire from "@/assets/product-tire.jpg";
-import { createOrder } from "@/lib/api/eshop.functions";
+import { createOrder, getSettings } from "@/lib/api/eshop.functions";
+import { DEFAULT_SETTINGS } from "@/lib/eshop-types";
 import { useCart } from "@/lib/cart";
+import { formatPrice } from "@/lib/format";
 
 type CheckoutForm = {
   name: string;
   email: string;
   phone: string;
+  company: string;
+  ico: string;
+  dic: string;
   address: string;
   city: string;
   zip: string;
+  delivery: string;
+  payment: string;
   note: string;
 };
 
@@ -22,9 +29,14 @@ const EMPTY_CHECKOUT: CheckoutForm = {
   name: "",
   email: "",
   phone: "",
+  company: "",
+  ico: "",
+  dic: "",
   address: "",
   city: "",
   zip: "",
+  delivery: "",
+  payment: "",
   note: "",
 };
 
@@ -32,6 +44,17 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   const { cart, setCart, total, clear } = useCart();
   const [step, setStep] = useState<"cart" | "checkout">("cart");
   const [form, setForm] = useState<CheckoutForm>(EMPTY_CHECKOUT);
+
+  const { data: settings = DEFAULT_SETTINGS } = useQuery({
+    queryKey: ["shop", "settings"],
+    queryFn: () => getSettings(),
+  });
+
+  const shipping = useMemo(
+    () => settings.deliveryMethods.find((d) => d.name === form.delivery)?.price ?? 0,
+    [settings.deliveryMethods, form.delivery],
+  );
+  const grandTotal = total + shipping;
 
   const setQty = (id: number, d: number) =>
     setCart((c) =>
@@ -50,11 +73,17 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             name: form.name,
             email: form.email,
             phone: form.phone || undefined,
+            company: form.company || undefined,
+            ico: form.ico || undefined,
+            dic: form.dic || undefined,
             address: form.address || undefined,
             city: form.city || undefined,
             zip: form.zip || undefined,
           },
           items: cart.map((x) => ({ product_id: x.p.id, qty: x.qty })),
+          deliveryMethod: form.delivery || undefined,
+          paymentMethod: form.payment || undefined,
+          shipping,
           note: form.note || undefined,
         },
       }),
@@ -69,7 +98,8 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   });
 
   const upd =
-    (k: keyof CheckoutForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    (k: keyof CheckoutForm) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
   return (
@@ -147,19 +177,58 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 <CheckoutInput placeholder="Jméno a příjmení *" value={form.name} onChange={upd("name")} />
                 <CheckoutInput placeholder="E-mail *" type="email" value={form.email} onChange={upd("email")} />
                 <CheckoutInput placeholder="Telefon" value={form.phone} onChange={upd("phone")} />
+
+                <p className="pt-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Firma (nepovinné)
+                </p>
+                <CheckoutInput placeholder="Název firmy" value={form.company} onChange={upd("company")} />
+                <div className="grid grid-cols-2 gap-3">
+                  <CheckoutInput placeholder="IČO" value={form.ico} onChange={upd("ico")} />
+                  <CheckoutInput placeholder="DIČ" value={form.dic} onChange={upd("dic")} />
+                </div>
+
+                <p className="pt-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Doručení
+                </p>
                 <CheckoutInput placeholder="Ulice a číslo" value={form.address} onChange={upd("address")} />
                 <div className="grid grid-cols-2 gap-3">
                   <CheckoutInput placeholder="PSČ" value={form.zip} onChange={upd("zip")} />
                   <CheckoutInput placeholder="Město" value={form.city} onChange={upd("city")} />
                 </div>
+
+                <select
+                  value={form.delivery}
+                  onChange={upd("delivery")}
+                  className="w-full rounded-xl border border-black/10 px-4 py-2.5 text-sm outline-none focus:border-[var(--ink)]"
+                >
+                  <option value="">Způsob dopravy…</option>
+                  {settings.deliveryMethods.map((d) => (
+                    <option key={d.name} value={d.name}>
+                      {d.name} {d.price > 0 ? `(${formatPrice(d.price)})` : "(zdarma)"}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={form.payment}
+                  onChange={upd("payment")}
+                  className="w-full rounded-xl border border-black/10 px-4 py-2.5 text-sm outline-none focus:border-[var(--ink)]"
+                >
+                  <option value="">Způsob platby…</option>
+                  {settings.paymentMethods.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+
                 <textarea
                   placeholder="Poznámka k objednávce"
                   value={form.note}
                   onChange={upd("note")}
-                  rows={3}
+                  rows={2}
                   className="w-full rounded-xl border border-black/10 px-4 py-2.5 text-sm outline-none focus:border-[var(--ink)]"
                 />
-                <div className="pt-2 space-y-2 text-sm">
+                <div className="space-y-1.5 pt-2 text-sm">
                   {cart.map(({ p, qty }) => (
                     <div key={p.id} className="flex justify-between text-muted-foreground">
                       <span>
@@ -168,6 +237,12 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                       <span>{p.price * qty} Kč</span>
                     </div>
                   ))}
+                  {shipping > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Doprava ({form.delivery})</span>
+                      <span>{formatPrice(shipping)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -175,7 +250,9 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             <div className="border-t p-6 space-y-4">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Celkem</span>
-                <span className="font-black text-xl">{total} Kč</span>
+                <span className="font-black text-xl">
+                  {step === "checkout" ? grandTotal : total} Kč
+                </span>
               </div>
               {step === "cart" ? (
                 <button
