@@ -277,9 +277,9 @@ function CategorySection() {
               />
             </div>
           </div>
-          <a href="#shop" className="pill-btn pill-btn-hover shrink-0">
+          <Link to="/produkty" className="pill-btn pill-btn-hover shrink-0">
             Zobrazit vše
-          </a>
+          </Link>
         </div>
       </div>
     </section>
@@ -304,19 +304,19 @@ function CategoryCard({ name, img, delay }: { name: string; img: string; delay: 
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay, duration: 0.5 }}
+      transition={{ delay, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
       style={{ transform: `perspective(1000px) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)` }}
-      className="snap-start shrink-0 w-[280px] sm:w-[340px] h-[420px] rounded-3xl overflow-hidden relative group cursor-pointer shadow-xl transition-transform"
+      className="snap-start shrink-0 w-[280px] sm:w-[340px] h-[420px] rounded-3xl overflow-hidden relative group cursor-pointer shadow-xl transition-shadow duration-300 hover:shadow-2xl select-none"
     >
       <img
         src={img}
         alt={name}
-        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         loading="lazy"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/30" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/35" />
       <div className="absolute top-5 left-5 right-5 flex justify-between items-start">
-        <h3 className="text-white text-2xl uppercase font-display">{name}</h3>
+        <h3 className="text-white text-2xl uppercase font-display drop-shadow">{name}</h3>
         <svg width="28" height="14" viewBox="0 0 28 14">
           <path
             d="M1 7 Q 7 1 14 7 T 27 7"
@@ -328,8 +328,17 @@ function CategoryCard({ name, img, delay }: { name: string; img: string; delay: 
         </svg>
       </div>
       <div className="absolute bottom-5 left-5">
-        <span className="pill-btn pill-btn-hover">Nakoupit</span>
+        <span className="pill-btn transition-colors duration-200 ease-out group-hover:bg-[var(--orange-deep)]">
+          Nakoupit
+        </span>
       </div>
+      {/* Celá karta klikací → filtrovaný výpis kategorie */}
+      <Link
+        to="/produkty"
+        search={{ sekce: "pneu", kategorie: name }}
+        aria-label={name}
+        className="absolute inset-0 z-10"
+      />
     </motion.div>
   );
 }
