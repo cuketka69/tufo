@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring } from "framer-motion";
 import {
   ChevronLeft,
@@ -214,17 +215,30 @@ function TrustBar() {
 
 /* ---------------- CATEGORY SECTION ---------------- */
 function CategorySection() {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: "start",
+    dragFree: true,
+    containScroll: "trimSnaps",
+  });
   const [progress, setProgress] = useState(0);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(true);
 
-  const onScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    setProgress(max > 0 ? (el.scrollLeft / max) * 100 : 0);
-  };
+  const update = useCallback(() => {
+    if (!emblaApi) return;
+    setProgress(Math.max(0, Math.min(1, emblaApi.scrollProgress())));
+    setCanPrev(emblaApi.canScrollPrev());
+    setCanNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
 
-  const scroll = (dir: 1 | -1) => scrollRef.current?.scrollBy({ left: dir * 380, behavior: "smooth" });
+  useEffect(() => {
+    if (!emblaApi) return;
+    update();
+    emblaApi.on("scroll", update).on("reInit", update).on("select", update);
+    return () => {
+      emblaApi.off("scroll", update).off("reInit", update).off("select", update);
+    };
+  }, [emblaApi, update]);
 
   return (
     <section className="bg-[var(--cream)] py-20 md:py-28">
@@ -243,37 +257,37 @@ function CategorySection() {
           </p>
         </motion.div>
 
-        <div
-          ref={scrollRef}
-          onScroll={onScroll}
-          className="flex gap-5 overflow-x-auto scrollbar-hide -mx-6 px-6 pb-2 snap-x snap-mandatory"
-          style={{ scrollbarWidth: "none" }}
-        >
-          {CATEGORIES.map((c, i) => (
-            <CategoryCard key={c.name} {...c} delay={i * 0.08} />
-          ))}
+        {/* Embla: tažení myší/prstem s momentem, kolečko/trackpad i šipky */}
+        <div ref={emblaRef} className="overflow-hidden -mx-6 px-6 cursor-grab active:cursor-grabbing">
+          <div className="flex gap-5 py-2">
+            {CATEGORIES.map((c, i) => (
+              <CategoryCard key={c.name} {...c} delay={i * 0.08} />
+            ))}
+          </div>
         </div>
 
         <div className="mt-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => scroll(-1)}
-              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition"
+              onClick={() => emblaApi?.scrollPrev()}
+              disabled={!canPrev}
+              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center transition hover:bg-[var(--ink)] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[var(--ink)]"
               aria-label="Předchozí"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={() => scroll(1)}
-              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center hover:bg-[var(--ink)] hover:text-white transition"
+              onClick={() => emblaApi?.scrollNext()}
+              disabled={!canNext}
+              className="w-10 h-10 rounded-full border border-[var(--ink)]/20 flex items-center justify-center transition hover:bg-[var(--ink)] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[var(--ink)]"
               aria-label="Další"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
             <div className="ml-3 h-[3px] w-32 overflow-hidden rounded-full bg-black/10">
               <div
-                className="h-full rounded-full bg-[var(--orange-deep)] transition-all"
-                style={{ width: `${Math.max(8, progress)}%` }}
+                className="h-full rounded-full bg-[var(--orange-deep)]"
+                style={{ width: `${Math.max(8, progress * 100)}%` }}
               />
             </div>
           </div>
