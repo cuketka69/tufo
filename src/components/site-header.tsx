@@ -34,6 +34,11 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
   const logoutMut = useMutation({
     mutationFn: () => logout(),
     onSuccess: async () => {
+      try {
+        sessionStorage.removeItem("tufo-tab-auth");
+      } catch {
+        /* ignore */
+      }
       await router.invalidate();
       router.navigate({ to: "/prihlaseni" });
     },

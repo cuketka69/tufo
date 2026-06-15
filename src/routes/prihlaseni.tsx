@@ -19,12 +19,18 @@ export const Route = createFileRoute("/prihlaseni")({
 function AuthPage() {
   const navigate = useNavigate();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(DEMO_EMAIL);
+  const [password, setPassword] = useState(DEMO_PASSWORD);
 
   const loginMut = useMutation({
     mutationFn: () => login({ data: { email, password } }),
     onSuccess: async () => {
+      // per-záložkový příznak: v této kartě jsme přihlášeni
+      try {
+        sessionStorage.setItem("tufo-tab-auth", "1");
+      } catch {
+        /* ignore */
+      }
       await router.invalidate();
       navigate({ to: "/" });
     },

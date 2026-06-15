@@ -132,12 +132,30 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function TabAuthGuard() {
+  const router = useRouter();
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.startsWith("/prihlaseni") || path.startsWith("/admin")) return;
+    let authed = false;
+    try {
+      authed = sessionStorage.getItem("tufo-tab-auth") === "1";
+    } catch {
+      authed = false;
+    }
+    // Nová karta = bez příznaku → vyžádat přihlášení
+    if (!authed) router.navigate({ to: "/prihlaseni" });
+  }, [router]);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
       <CartProvider>
+        <TabAuthGuard />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </CartProvider>
