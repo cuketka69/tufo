@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -30,7 +30,17 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
   const { count, isOpen, openCart, closeCart } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
   const { data: user } = useQuery({ queryKey: ["auth", "me"], queryFn: () => getCurrentUser() });
+
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) setAccountOpen(false);
+    };
+    if (accountOpen) document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [accountOpen]);
   const logoutMut = useMutation({
     mutationFn: () => logout(),
     onSuccess: async () => {
@@ -90,16 +100,42 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
           <div className={`flex items-center gap-5 ${light ? "text-[var(--ink)]" : "text-white"}`}>
             <HeaderSearch />
             {user ? (
-              <button
-                onClick={() => logoutMut.mutate()}
-                aria-label="Odhlásit se"
-                title={`Odhlásit (${user.email})`}
-                className="hover:opacity-70"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
+              <div ref={accountRef} className="relative flex items-center">
+                <button
+                  onClick={() => setAccountOpen((o) => !o)}
+                  aria-label="Účet"
+                  className="flex items-center hover:opacity-70"
+                >
+                  <User className="w-5 h-5" />
+                </button>
+                <AnimatePresence>
+                  {accountOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                      transition={{ duration: 0.16, ease: [0.23, 1, 0.32, 1] }}
+                      style={{ transformOrigin: "top right" }}
+                      className="absolute right-0 top-full z-[60] mt-3 w-56 overflow-hidden rounded-2xl border border-black/5 bg-white text-[var(--ink)] shadow-2xl"
+                    >
+                      <div className="border-b px-4 py-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Přihlášen jako
+                        </p>
+                        <p className="truncate text-sm font-semibold">{user.email}</p>
+                      </div>
+                      <button
+                        onClick={() => logoutMut.mutate()}
+                        className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium transition-colors hover:bg-[var(--cream)]"
+                      >
+                        <LogOut className="h-4 w-4" /> Odhlásit se
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ) : (
-              <Link to="/prihlaseni" aria-label="Přihlášení" className="hover:opacity-70">
+              <Link to="/prihlaseni" aria-label="Přihlášení" className="flex items-center hover:opacity-70">
                 <User className="w-5 h-5" />
               </Link>
             )}
