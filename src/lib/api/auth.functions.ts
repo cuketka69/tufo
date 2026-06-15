@@ -31,13 +31,17 @@ export const logout = createServerFn({ method: "POST" }).handler(async () => {
 
 export const getCurrentUser = createServerFn({ method: "GET" }).handler(
   async (): Promise<Pick<User, "id" | "email" | "name" | "company"> | null> => {
-    const userId = await getSessionUserId();
-    if (!userId) return null;
-    const user = getDb()
-      .prepare("SELECT id, email, name, company, active FROM users WHERE id = ?")
-      .get(userId) as User | undefined;
-    if (!user || !user.active) return null;
-    return { id: user.id, email: user.email, name: user.name, company: user.company };
+    try {
+      const userId = await getSessionUserId();
+      if (!userId) return null;
+      const user = getDb()
+        .prepare("SELECT id, email, name, company, active FROM users WHERE id = ?")
+        .get(userId) as User | undefined;
+      if (!user || !user.active) return null;
+      return { id: user.id, email: user.email, name: user.name, company: user.company };
+    } catch {
+      return null;
+    }
   },
 );
 

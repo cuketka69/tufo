@@ -1,6 +1,7 @@
 import process from "node:process";
 import path from "node:path";
 import fs from "node:fs";
+import os from "node:os";
 import Database from "better-sqlite3";
 
 import { hashPassword } from "@/lib/password.server";
@@ -14,7 +15,10 @@ let _db: Database.Database | null = null;
 export function getDb(): Database.Database {
   if (_db) return _db;
 
-  const dataDir = path.join(process.cwd(), "data");
+  // Na serverless (Vercel) je pracovní adresář read-only — použijeme zapisovatelný
+  // dočasný adresář (/tmp). Data jsou tam dočasná (resetují se při cold startu).
+  const baseDir = process.env.VERCEL ? os.tmpdir() : process.cwd();
+  const dataDir = path.join(baseDir, "data");
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
   const db = new Database(path.join(dataDir, "eshop.db"));
