@@ -2,7 +2,10 @@ import { useState } from "react";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Copy } from "lucide-react";
+
+const DEMO_EMAIL = "b2b@tufo.cz";
+const DEMO_PASSWORD = "tufo1234";
 
 import blackLogo from "@/assets/blogo.webp";
 import { Toaster } from "@/components/ui/sonner";
@@ -31,6 +34,13 @@ function AuthPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) loginMut.mutate();
+  };
+
+  const copy = (value: string) => {
+    navigator.clipboard?.writeText(value).then(
+      () => toast.success("Zkopírováno"),
+      () => toast.error("Kopírování selhalo"),
+    );
   };
 
   return (
@@ -77,6 +87,25 @@ function AuthPage() {
           </button>
         </form>
 
+        {/* Testovací přístup */}
+        <div className="mt-5 rounded-xl border border-dashed border-[var(--orange-deep)]/30 bg-[var(--cream)] p-4">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--orange-deep)]">
+            Testovací režim — přihlašovací údaje
+          </p>
+          <CredRow label="E-mail" value={DEMO_EMAIL} onCopy={() => copy(DEMO_EMAIL)} />
+          <CredRow label="Heslo" value={DEMO_PASSWORD} onCopy={() => copy(DEMO_PASSWORD)} />
+          <button
+            type="button"
+            onClick={() => {
+              setEmail(DEMO_EMAIL);
+              setPassword(DEMO_PASSWORD);
+            }}
+            className="mt-2 w-full rounded-lg border border-[var(--ink)]/20 py-2 text-xs font-semibold uppercase tracking-wider hover:bg-[var(--ink)] hover:text-white"
+          >
+            Předvyplnit
+          </button>
+        </div>
+
         <p className="mt-5 text-center text-xs text-muted-foreground">
           Nemáte přístup? Účet vám vytvoří správce — kontaktujte nás na{" "}
           <a href="mailto:tufo@tufo.cz" className="font-semibold text-[var(--ink)] hover:underline">
@@ -84,6 +113,25 @@ function AuthPage() {
           </a>
           .
         </p>
+      </div>
+    </div>
+  );
+}
+
+function CredRow({ label, value, onCopy }: { label: string; value: string; onCopy: () => void }) {
+  return (
+    <div className="flex items-center justify-between gap-2 py-1 text-sm">
+      <span className="text-muted-foreground">{label}:</span>
+      <div className="flex items-center gap-2">
+        <code className="rounded bg-white px-2 py-0.5 font-mono text-xs">{value}</code>
+        <button
+          type="button"
+          onClick={onCopy}
+          aria-label={`Kopírovat ${label.toLowerCase()}`}
+          className="text-muted-foreground hover:text-[var(--ink)]"
+        >
+          <Copy className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
