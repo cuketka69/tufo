@@ -71,7 +71,7 @@ export function ProductCard({
               onAdd(p);
             }}
             disabled={p.stock <= 0}
-            className="rounded-full bg-[var(--ink)] text-white text-xs font-bold uppercase tracking-[0.12em] px-5 py-3 hover:bg-[var(--orange-deep)] transition disabled:opacity-40 disabled:hover:bg-[var(--ink)]"
+            className="rounded-full bg-[var(--ink)] text-white text-xs font-bold uppercase tracking-[0.12em] px-5 py-3 transition-[background-color,transform] duration-200 ease-out hover:bg-[var(--orange-deep)] active:scale-[0.97] disabled:opacity-40 disabled:hover:bg-[var(--ink)]"
           >
             Do košíku
           </button>

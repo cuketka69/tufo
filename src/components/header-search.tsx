@@ -55,10 +55,11 @@ export function HeaderSearch() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            transition={{ duration: 0.16, ease: [0.23, 1, 0.32, 1] }}
+            style={{ transformOrigin: "top right" }}
             className="absolute right-0 top-full z-[60] mt-3 w-[360px] max-w-[90vw] overflow-hidden rounded-2xl border border-black/5 bg-white text-[var(--ink)] shadow-2xl"
           >
             <div className="flex items-center gap-2.5 border-b px-4 py-3">
