@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  redirect,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "../lib/cart";
+import { getCurrentUser } from "../lib/api/auth.functions";
 
 function NotFoundComponent() {
   return (
@@ -74,6 +76,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  // B2B brána: nepřihlášení uživatelé vidí jen přihlášení. Admin je samostatný.
+  beforeLoad: async ({ location }) => {
+    const path = location.pathname;
+    if (path.startsWith("/prihlaseni") || path.startsWith("/admin")) return;
+    const user = await getCurrentUser();
+    if (!user) throw redirect({ to: "/prihlaseni" });
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },

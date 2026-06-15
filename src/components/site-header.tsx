@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, ShoppingBag, ChevronDown } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { User, ShoppingBag, ChevronDown, LogOut } from "lucide-react";
 
 import whiteLogo from "@/assets/wlogo.webp";
 import blackLogo from "@/assets/blogo.webp";
 import { useCart } from "@/lib/cart";
 import { CartDrawer } from "@/components/cart-drawer";
 import { HeaderSearch } from "@/components/header-search";
+import { getCurrentUser, logout } from "@/lib/api/auth.functions";
 import { PNEU_SECTION, PRISLUSENSTVI_SECTION, categoryFallbackColor, type TaxSection } from "@/lib/taxonomy";
 
 const NAV = [
@@ -27,6 +29,15 @@ const navLinkClass =
 export function SiteHeader({ solid = false }: { solid?: boolean }) {
   const { count, isOpen, openCart, closeCart } = useCart();
   const [scrolled, setScrolled] = useState(false);
+  const router = useRouter();
+  const { data: user } = useQuery({ queryKey: ["auth", "me"], queryFn: () => getCurrentUser() });
+  const logoutMut = useMutation({
+    mutationFn: () => logout(),
+    onSuccess: async () => {
+      await router.invalidate();
+      router.navigate({ to: "/prihlaseni" });
+    },
+  });
 
   useEffect(() => {
     if (solid) return;
@@ -70,9 +81,20 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
           </Link>
           <div className={`flex items-center gap-5 ${light ? "text-[var(--ink)]" : "text-white"}`}>
             <HeaderSearch />
-            <Link to="/prihlaseni" aria-label="Přihlášení" className="hover:opacity-70">
-              <User className="w-5 h-5" />
-            </Link>
+            {user ? (
+              <button
+                onClick={() => logoutMut.mutate()}
+                aria-label="Odhlásit se"
+                title={`Odhlásit (${user.email})`}
+                className="hover:opacity-70"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            ) : (
+              <Link to="/prihlaseni" aria-label="Přihlášení" className="hover:opacity-70">
+                <User className="w-5 h-5" />
+              </Link>
+            )}
             <button onClick={openCart} className="relative" aria-label="Košík">
               <ShoppingBag className="w-5 h-5" />
               {count > 0 && (

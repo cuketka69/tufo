@@ -3,6 +3,8 @@ import path from "node:path";
 import fs from "node:fs";
 import Database from "better-sqlite3";
 
+import { hashPassword } from "@/lib/password.server";
+
 // Server-only SQLite layer. The `.server.ts` suffix keeps better-sqlite3 (a
 // native module) out of the client bundle. A single connection is reused
 // across requests via a module-scoped singleton.
@@ -96,6 +98,16 @@ function migrate(db: Database.Database) {
       value TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS users (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      email         TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      name          TEXT,
+      company       TEXT,
+      active        INTEGER NOT NULL DEFAULT 1,
+      created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS order_items (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
       order_id   INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
@@ -177,6 +189,14 @@ function seed(db: Database.Database) {
     });
   });
   ensureCats();
+
+  // Výchozí B2B účet pro testování (pokud žádný uživatel neexistuje).
+  const userCount = db.prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number };
+  if (userCount.n === 0) {
+    db.prepare(
+      "INSERT INTO users (email, password_hash, name, company, active) VALUES (?, ?, ?, ?, 1)",
+    ).run("b2b@tufo.cz", hashPassword("tufo1234"), "Demo B2B", "Demo s.r.o.");
+  }
 
   // Produkty seedujeme jen při prázdné databázi.
   const count = db.prepare("SELECT COUNT(*) AS n FROM products").get() as { n: number };

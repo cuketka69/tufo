@@ -1,111 +1,90 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Mail, Lock, User as UserIcon } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 
+import blackLogo from "@/assets/blogo.webp";
 import { Toaster } from "@/components/ui/sonner";
-import { SiteHeader } from "@/components/site-header";
+import { login } from "@/lib/api/auth.functions";
 
 export const Route = createFileRoute("/prihlaseni")({
-  head: () => ({
-    meta: [{ title: "Přihlášení — TUFO" }],
-  }),
+  head: () => ({ meta: [{ title: "Přihlášení — TUFO B2B" }] }),
   component: AuthPage,
 });
 
 function AuthPage() {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const navigate = useNavigate();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const loginMut = useMutation({
+    mutationFn: () => login({ data: { email, password } }),
+    onSuccess: async () => {
+      await router.invalidate();
+      navigate({ to: "/" });
+    },
+    onError: (e: Error) => toast.error(e.message || "Přihlášení selhalo"),
+  });
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info("Přihlašování zatím není aktivní — připravujeme.");
+    if (email && password) loginMut.mutate();
   };
 
   return (
-    <div className="min-h-screen bg-[var(--cream)] text-[var(--ink)]">
-      <SiteHeader solid />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--cream)] px-6 text-[var(--ink)]">
+      <Toaster position="top-right" richColors />
 
-      <main className="mx-auto flex max-w-md flex-col px-6 pt-28 pb-16">
-        <h1 className="mb-2 text-center font-display text-4xl uppercase">
-          {mode === "login" ? "Přihlášení" : "Registrace"}
-        </h1>
-        <p className="mb-8 text-center text-sm text-muted-foreground">
-          {mode === "login"
-            ? "Přihlaste se ke svému účtu TUFO."
-            : "Vytvořte si nový účet TUFO."}
+      <img src={blackLogo} alt="TUFO" className="mb-8 h-10 w-auto" />
+
+      <div className="w-full max-w-sm rounded-3xl border border-black/5 bg-white p-7 shadow-sm">
+        <h1 className="text-center font-display text-2xl uppercase">B2B přihlášení</h1>
+        <p className="mt-2 text-center text-sm text-muted-foreground">
+          Vstup je určen pouze pro registrované partnery.
         </p>
 
-        {/* Přepínač */}
-        <div className="mb-6 grid grid-cols-2 rounded-full border border-black/10 bg-white p-1 text-sm font-bold uppercase tracking-wider">
-          {(["login", "register"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`rounded-full py-2.5 transition-colors ${
-                mode === m ? "bg-[var(--ink)] text-white" : "text-muted-foreground hover:text-[var(--ink)]"
-              }`}
-            >
-              {m === "login" ? "Přihlásit" : "Registrovat"}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={submit} className="space-y-3 rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
-          {mode === "register" && (
-            <AuthInput icon={UserIcon} type="text" placeholder="Jméno a příjmení" />
-          )}
-          <AuthInput icon={Mail} type="email" placeholder="E-mail" />
-          <AuthInput icon={Lock} type="password" placeholder="Heslo" />
-
-          {mode === "login" && (
-            <div className="text-right">
-              <button type="button" className="text-xs font-semibold text-[var(--orange-deep)] hover:underline">
-                Zapomněli jste heslo?
-              </button>
-            </div>
-          )}
+        <form onSubmit={submit} className="mt-6 space-y-3">
+          <div className="relative">
+            <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="E-mail"
+              autoFocus
+              className="w-full rounded-xl border border-black/10 py-3 pl-11 pr-4 text-sm outline-none focus:border-[var(--ink)]"
+            />
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Heslo"
+              className="w-full rounded-xl border border-black/10 py-3 pl-11 pr-4 text-sm outline-none focus:border-[var(--ink)]"
+            />
+          </div>
 
           <button
             type="submit"
-            className="w-full rounded-full bg-[var(--ink)] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--orange-deep)]"
+            disabled={loginMut.isPending || !email || !password}
+            className="w-full rounded-full bg-[var(--ink)] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--orange-deep)] disabled:opacity-50"
           >
-            {mode === "login" ? "Přihlásit se" : "Vytvořit účet"}
+            {loginMut.isPending ? "Přihlašuji…" : "Přihlásit se"}
           </button>
-
-          <p className="pt-1 text-center text-sm text-muted-foreground">
-            {mode === "login" ? "Nemáte účet? " : "Už máte účet? "}
-            <button
-              type="button"
-              onClick={() => setMode(mode === "login" ? "register" : "login")}
-              className="font-semibold text-[var(--ink)] hover:text-[var(--orange-deep)]"
-            >
-              {mode === "login" ? "Zaregistrujte se" : "Přihlaste se"}
-            </button>
-          </p>
         </form>
-      </main>
-      <Toaster position="top-right" richColors />
-    </div>
-  );
-}
 
-function AuthInput({
-  icon: Icon,
-  type,
-  placeholder,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  type: string;
-  placeholder: string;
-}) {
-  return (
-    <div className="relative">
-      <Icon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-black/10 py-3 pl-11 pr-4 text-sm outline-none focus:border-[var(--ink)]"
-      />
+        <p className="mt-5 text-center text-xs text-muted-foreground">
+          Nemáte přístup? Účet vám vytvoří správce — kontaktujte nás na{" "}
+          <a href="mailto:tufo@tufo.cz" className="font-semibold text-[var(--ink)] hover:underline">
+            tufo@tufo.cz
+          </a>
+          .
+        </p>
+      </div>
     </div>
   );
 }

@@ -93,6 +93,15 @@ export type Order = {
   items?: OrderItem[];
 };
 
+export type User = {
+  id: number;
+  email: string;
+  name: string | null;
+  company: string | null;
+  active: number;
+  created_at: string;
+};
+
 export type ShopSettings = {
   shopName: string;
   email: string;
