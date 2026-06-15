@@ -34,6 +34,7 @@ function migrate(db: Database.Database) {
       name       TEXT NOT NULL,
       image      TEXT,
       sort       INTEGER NOT NULL DEFAULT 0,
+      group_key  TEXT NOT NULL DEFAULT 'pneu',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -96,15 +97,27 @@ function migrate(db: Database.Database) {
   if (!cols.some((c) => c.name === "color")) {
     db.exec("ALTER TABLE products ADD COLUMN color TEXT");
   }
+  const catCols = db.prepare("PRAGMA table_info(categories)").all() as { name: string }[];
+  if (!catCols.some((c) => c.name === "group_key")) {
+    db.exec("ALTER TABLE categories ADD COLUMN group_key TEXT NOT NULL DEFAULT 'pneu'");
+  }
 }
 
+// Sekce → kategorie (musí odpovídat src/lib/taxonomy.ts)
 const SEED_CATEGORIES = [
-  { slug: "silnice", name: "Silnice" },
-  { slug: "gravel", name: "Gravel" },
-  { slug: "mtb", name: "MTB" },
-  { slug: "cyklokros", name: "Cyklokros" },
-  { slug: "triatlon", name: "Triatlon" },
-  { slug: "draha", name: "Dráha" },
+  { slug: "silnice", name: "Silnice", group: "pneu" },
+  { slug: "gravel", name: "Gravel", group: "pneu" },
+  { slug: "mtb", name: "MTB", group: "pneu" },
+  { slug: "cyklokros", name: "Cyklokros", group: "pneu" },
+  { slug: "triatlon", name: "Triatlon", group: "pneu" },
+  { slug: "draha", name: "Dráha", group: "pneu" },
+  { slug: "voziky", name: "Vozíčky", group: "pneu" },
+  { slug: "kolova", name: "Kolová / krasojízda", group: "pneu" },
+  { slug: "tmely", name: "Tmely a lepení", group: "prislusenstvi" },
+  { slug: "ventilky", name: "Ventilky", group: "prislusenstvi" },
+  { slug: "duse", name: "Duše", group: "prislusenstvi" },
+  { slug: "rafkove-pasky", name: "Ráfkové pásky", group: "prislusenstvi" },
+  { slug: "nahradni-dily", name: "Náhradní díly", group: "prislusenstvi" },
 ];
 
 const SEED_PRODUCTS = [
@@ -115,28 +128,40 @@ const SEED_PRODUCTS = [
   { sku: "TUF-ELR", name: "Tufo Elite Ride", type: "Galusky", category: "silnice", price: 1690, training: 50, racing: 98, stock: 9, featured: 1, color: "Bílá" },
   { sku: "TUF-HIC", name: "Tufo C Hi-Composite", type: "Pláště", category: "cyklokros", price: 990, training: 85, racing: 75, stock: 64, featured: 0, color: "Oranžová" },
   { sku: "TUF-CMD", name: "Tufo Comtura Duo", type: "Plášťovky", category: "triatlon", price: 1190, training: 70, racing: 88, stock: 23, featured: 0, color: "Bílá" },
-  { sku: "TUF-LEP", name: "Tufo Lepenka tmel", type: "Příslušenství", category: null, price: 290, training: 90, racing: 60, stock: 120, featured: 0, color: null },
+  { sku: "TUF-LEP", name: "Tufo Lepenka tmel", type: "Příslušenství", category: "tmely", price: 290, training: 90, racing: 60, stock: 120, featured: 0, color: null },
+  { sku: "TUF-VENT", name: "Tufo Galuskový ventilek", type: "Příslušenství", category: "ventilky", price: 90, training: 0, racing: 0, stock: 200, featured: 0, color: null },
 ];
 
 function seed(db: Database.Database) {
+  // Kategorie sjednotíme vždy (idempotentně) — i pro existující databáze.
+  const insertCat = db.prepare(
+    "INSERT OR IGNORE INTO categories (slug, name, sort, group_key) VALUES (@slug, @name, @sort, @group)",
+  );
+  const updateCat = db.prepare("UPDATE categories SET group_key = @group WHERE slug = @slug");
+  const ensureCats = db.transaction(() => {
+    SEED_CATEGORIES.forEach((c, i) => {
+      insertCat.run({ ...c, sort: i });
+      updateCat.run({ slug: c.slug, group: c.group });
+    });
+  });
+  ensureCats();
+
+  // Produkty seedujeme jen při prázdné databázi.
   const count = db.prepare("SELECT COUNT(*) AS n FROM products").get() as { n: number };
   if (count.n > 0) return;
 
-  const insertCat = db.prepare(
-    "INSERT INTO categories (slug, name, sort) VALUES (@slug, @name, @sort)",
-  );
   const insertProd = db.prepare(`
     INSERT INTO products (sku, name, type, category_id, price, training, racing, stock, color, featured, active)
     VALUES (@sku, @name, @type, @category_id, @price, @training, @racing, @stock, @color, @featured, 1)
   `);
 
+  const catBySlug = new Map(
+    (db.prepare("SELECT id, slug FROM categories").all() as { id: number; slug: string }[]).map(
+      (c) => [c.slug, c.id],
+    ),
+  );
+
   const tx = db.transaction(() => {
-    SEED_CATEGORIES.forEach((c, i) => insertCat.run({ ...c, sort: i }));
-    const catBySlug = new Map(
-      (db.prepare("SELECT id, slug FROM categories").all() as { id: number; slug: string }[]).map(
-        (c) => [c.slug, c.id],
-      ),
-    );
     for (const p of SEED_PRODUCTS) {
       insertProd.run({
         sku: p.sku,

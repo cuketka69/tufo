@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft, Search } from "lucide-react";
@@ -11,9 +11,19 @@ import { SiteHeader } from "@/components/site-header";
 import { useShopProducts } from "@/lib/shop";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
+import { SECTIONS } from "@/lib/taxonomy";
 import type { Product } from "@/lib/eshop-types";
 
+type ProductsSearch = { kategorie?: string; sekce?: "pneu" | "prislusenstvi" };
+
 export const Route = createFileRoute("/produkty")({
+  validateSearch: (search: Record<string, unknown>): ProductsSearch => ({
+    kategorie: typeof search.kategorie === "string" ? search.kategorie : undefined,
+    sekce:
+      search.sekce === "pneu" || search.sekce === "prislusenstvi"
+        ? (search.sekce as "pneu" | "prislusenstvi")
+        : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Všechny produkty — TUFO" },
@@ -43,14 +53,28 @@ const COLOR_HEX: Record<string, string> = {
 
 function ProductsPage() {
   const navigate = useNavigate();
+  const { kategorie, sekce } = Route.useSearch();
   const { products, isLoading } = useShopProducts();
   const { addToCart } = useCart();
 
+  const sectionNames = (key: "pneu" | "prislusenstvi") =>
+    SECTIONS.find((s) => s.key === key)?.categories.map((c) => c.name) ?? [];
+
+  const initialCats = kategorie ? [kategorie] : sekce ? sectionNames(sekce) : [];
+
+  const [categories, setCategories] = useState<string[]>(initialCats);
   const [types, setTypes] = useState<string[]>([]);
   const [colors, setColors] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [sort, setSort] = useState<(typeof SORTS)[number]["value"]>("featured");
   const [search, setSearch] = useState("");
+
+  // Sync filtru kategorií s URL (klik v navigaci na jinou kategorii/sekci)
+  useEffect(() => {
+    if (kategorie) setCategories([kategorie]);
+    else if (sekce) setCategories(sectionNames(sekce));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kategorie, sekce]);
 
   // Dostupné hodnoty filtrů a cenové meze z produktů
   const { allTypes, allColors, priceMin, priceMax } = useMemo(() => {
@@ -72,6 +96,8 @@ function ProductsPage() {
 
   const filtered = useMemo(() => {
     let list = products.filter((p) => {
+      if (categories.length && (!p.category_name || !categories.includes(p.category_name)))
+        return false;
       if (types.length && !types.includes(p.type)) return false;
       if (colors.length && (!p.color || !colors.includes(p.color))) return false;
       if (p.price > effectiveMax) return false;
@@ -86,17 +112,20 @@ function ProductsPage() {
       return Number(b.featured) - Number(a.featured) || a.id - b.id;
     });
     return list;
-  }, [products, types, colors, effectiveMax, sort, search]);
+  }, [products, categories, types, colors, effectiveMax, sort, search]);
 
   const openProduct = (p: Product) =>
     navigate({ to: "/produkt/$id", params: { id: String(p.id) } });
 
-  const activeFilters = types.length + colors.length + (maxPrice !== null && maxPrice < priceMax ? 1 : 0);
+  const activeFilters =
+    categories.length + types.length + colors.length + (maxPrice !== null && maxPrice < priceMax ? 1 : 0);
   const resetFilters = () => {
+    setCategories([]);
     setTypes([]);
     setColors([]);
     setMaxPrice(null);
     setSearch("");
+    navigate({ to: "/produkty", search: {} });
   };
 
   return (
@@ -114,7 +143,9 @@ function ProductsPage() {
         <p className="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-[var(--orange-deep)]">
           Náš sortiment
         </p>
-        <h1 className="mb-8 font-display text-4xl uppercase md:text-5xl">Všechny produkty</h1>
+        <h1 className="mb-8 font-display text-4xl uppercase md:text-5xl">
+          {kategorie ?? SECTIONS.find((s) => s.key === sekce)?.label ?? "Všechny produkty"}
+        </h1>
 
         <div className="grid gap-8 md:grid-cols-[250px_1fr]">
           {/* Sidebar filtry */}
@@ -131,8 +162,27 @@ function ProductsPage() {
               )}
             </div>
 
+            {/* Kategorie (dle sekcí) */}
+            {SECTIONS.map((section) => (
+              <FilterGroup key={section.key} title={section.label}>
+                <div className="space-y-2">
+                  {section.categories.map((c) => (
+                    <label key={c.slug} className="flex cursor-pointer items-center gap-2.5 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={categories.includes(c.name)}
+                        onChange={() => toggle(categories, setCategories, c.name)}
+                        className="h-4 w-4 rounded border-black/20 accent-[var(--orange-deep)]"
+                      />
+                      {c.name}
+                    </label>
+                  ))}
+                </div>
+              </FilterGroup>
+            ))}
+
             {/* Typ */}
-            <FilterGroup title="Typ">
+            <FilterGroup title="Typ konstrukce">
               <div className="space-y-2">
                 {allTypes.map((t) => (
                   <label key={t} className="flex cursor-pointer items-center gap-2.5 text-sm">

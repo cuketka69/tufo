@@ -5,31 +5,15 @@ import { User, ShoppingBag, ChevronDown } from "lucide-react";
 
 import whiteLogo from "@/assets/wlogo.webp";
 import blackLogo from "@/assets/blogo.webp";
-import silniceImg from "@/assets/silnice.webp";
-import gravelImg from "@/assets/gravel.webp";
-import mtbImg from "@/assets/mtb.webp";
-import cyklokrosImg from "@/assets/cyklokros.webp";
-import triatlonImg from "@/assets/triatlon.webp";
-import drahaImg from "@/assets/draha.webp";
 import { useCart } from "@/lib/cart";
 import { CartDrawer } from "@/components/cart-drawer";
 import { HeaderSearch } from "@/components/header-search";
+import { PNEU_SECTION, PRISLUSENSTVI_SECTION, categoryFallbackColor, type TaxSection } from "@/lib/taxonomy";
 
 const NAV = [
-  { label: "Pneu", hash: "shop", dropdown: true },
-  { label: "Příslušenství", hash: "shop" },
   { label: "Technologie", hash: "story" },
   { label: "Distributoři", hash: "shop" },
   { label: "Kontakt", hash: "footer" },
-];
-
-const CATEGORIES = [
-  { name: "Silnice", img: silniceImg },
-  { name: "Gravel", img: gravelImg },
-  { name: "MTB", img: mtbImg },
-  { name: "Cyklokros", img: cyklokrosImg },
-  { name: "Triatlon", img: triatlonImg },
-  { name: "Dráha", img: drahaImg },
 ];
 
 const navLinkClass =
@@ -67,15 +51,13 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
               light ? "text-[var(--ink)]" : "text-white"
             }`}
           >
-            {NAV.map((item, i) =>
-              item.dropdown ? (
-                <NavDropdown key={i} label={item.label} />
-              ) : (
-                <Link key={i} to="/" hash={item.hash} className={navLinkClass}>
-                  {item.label}
-                </Link>
-              ),
-            )}
+            <NavDropdown section={PNEU_SECTION} />
+            <NavDropdown section={PRISLUSENSTVI_SECTION} />
+            {NAV.map((item, i) => (
+              <Link key={i} to="/" hash={item.hash} className={navLinkClass}>
+                {item.label}
+              </Link>
+            ))}
           </nav>
           <Link to="/" className="flex items-center" aria-label="TUFO">
             <img
@@ -107,17 +89,18 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
   );
 }
 
-function NavDropdown({ label }: { label: string }) {
+function NavDropdown({ section }: { section: TaxSection }) {
   const [open, setOpen] = useState(false);
+  const cols = Math.min(section.categories.length, 4);
 
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      <Link to="/" hash="shop" className={`${navLinkClass} inline-flex items-center gap-1`}>
-        {label}
+    <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <Link
+        to="/produkty"
+        search={{ sekce: section.key }}
+        className={`${navLinkClass} inline-flex items-center gap-1`}
+      >
+        {section.label}
         <ChevronDown
           className={`h-3.5 w-3.5 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
         />
@@ -132,24 +115,37 @@ function NavDropdown({ label }: { label: string }) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="absolute left-0 top-full z-50 pt-5"
           >
-            <div className="w-[760px] max-w-[92vw] rounded-2xl border border-black/5 bg-white p-4 text-[var(--ink)] shadow-2xl">
+            <div className="max-w-[92vw] rounded-2xl border border-black/5 bg-white p-4 text-[var(--ink)] shadow-2xl">
               <p className="px-1 pb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                Kategorie
+                {section.label}
               </p>
-              <div className="grid grid-cols-6 gap-3">
-                {CATEGORIES.map((c) => (
+              <div
+                className="grid gap-3"
+                style={{ gridTemplateColumns: `repeat(${cols}, 8rem)` }}
+              >
+                {section.categories.map((c) => (
                   <Link
-                    key={c.name}
+                    key={c.slug}
                     to="/produkty"
+                    search={{ sekce: section.key, kategorie: c.name }}
                     className="group/item flex flex-col items-center gap-2 rounded-xl p-2 transition-colors hover:bg-[var(--cream)]"
                   >
-                    <img
-                      src={c.img}
-                      alt=""
-                      className="aspect-square w-full rounded-xl object-cover transition-transform duration-300 group-hover/item:scale-105"
-                      loading="lazy"
-                    />
-                    <span className="text-center text-xs font-semibold transition-colors group-hover/item:text-[var(--orange-deep)]">
+                    {c.img ? (
+                      <img
+                        src={c.img}
+                        alt=""
+                        className="aspect-square w-full rounded-xl object-cover transition-transform duration-300 group-hover/item:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span
+                        className="flex aspect-square w-full items-center justify-center rounded-xl font-display text-3xl text-white transition-transform duration-300 group-hover/item:scale-105"
+                        style={{ backgroundColor: categoryFallbackColor(c.name) }}
+                      >
+                        {c.name.charAt(0)}
+                      </span>
+                    )}
+                    <span className="text-center text-xs font-semibold leading-tight transition-colors group-hover/item:text-[var(--orange-deep)]">
                       {c.name}
                     </span>
                   </Link>

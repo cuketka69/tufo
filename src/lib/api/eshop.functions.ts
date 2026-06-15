@@ -125,14 +125,23 @@ const categoryInput = z.object({
   name: z.string().min(1),
   image: z.string().nullable().optional(),
   sort: z.number().int().optional(),
+  group: z.enum(["pneu", "prislusenstvi"]).optional(),
 });
 
 export const createCategory = createServerFn({ method: "POST" })
   .validator(categoryInput)
   .handler(async ({ data }) => {
     const info = getDb()
-      .prepare("INSERT INTO categories (slug, name, image, sort) VALUES (@slug, @name, @image, @sort)")
-      .run({ slug: data.slug, name: data.name, image: data.image ?? null, sort: data.sort ?? 0 });
+      .prepare(
+        "INSERT INTO categories (slug, name, image, sort, group_key) VALUES (@slug, @name, @image, @sort, @group)",
+      )
+      .run({
+        slug: data.slug,
+        name: data.name,
+        image: data.image ?? null,
+        sort: data.sort ?? 0,
+        group: data.group ?? "pneu",
+      });
     return { id: Number(info.lastInsertRowid) };
   });
 
@@ -140,8 +149,17 @@ export const updateCategory = createServerFn({ method: "POST" })
   .validator(categoryInput.extend({ id: z.number().int() }))
   .handler(async ({ data }) => {
     getDb()
-      .prepare("UPDATE categories SET slug=@slug, name=@name, image=@image, sort=@sort WHERE id=@id")
-      .run({ id: data.id, slug: data.slug, name: data.name, image: data.image ?? null, sort: data.sort ?? 0 });
+      .prepare(
+        "UPDATE categories SET slug=@slug, name=@name, image=@image, sort=@sort, group_key=@group WHERE id=@id",
+      )
+      .run({
+        id: data.id,
+        slug: data.slug,
+        name: data.name,
+        image: data.image ?? null,
+        sort: data.sort ?? 0,
+        group: data.group ?? "pneu",
+      });
     return { ok: true };
   });
 

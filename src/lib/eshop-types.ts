@@ -19,6 +19,7 @@ export type Category = {
   name: string;
   image: string | null;
   sort: number;
+  group_key: string;
   created_at: string;
   product_count?: number;
 };

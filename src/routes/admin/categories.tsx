@@ -21,8 +21,14 @@ export const Route = createFileRoute("/admin/categories")({
   component: CategoriesPage,
 });
 
-type FormState = { id?: number; slug: string; name: string; sort: number };
-const EMPTY: FormState = { slug: "", name: "", sort: 0 };
+type FormState = {
+  id?: number;
+  slug: string;
+  name: string;
+  sort: number;
+  group: "pneu" | "prislusenstvi";
+};
+const EMPTY: FormState = { slug: "", name: "", sort: 0, group: "pneu" };
 
 function slugify(s: string) {
   return s
@@ -44,10 +50,11 @@ function CategoriesPage() {
 
   const saveMut = useMutation({
     mutationFn: async (f: FormState) => {
+      const payload = { slug: f.slug, name: f.name, sort: f.sort, group: f.group };
       if (f.id) {
-        await updateCategory({ data: { id: f.id, slug: f.slug, name: f.name, sort: f.sort } });
+        await updateCategory({ data: { ...payload, id: f.id } });
       } else {
-        await createCategory({ data: { slug: f.slug, name: f.name, sort: f.sort } });
+        await createCategory({ data: payload });
       }
     },
     onSuccess: () => {
@@ -73,7 +80,13 @@ function CategoriesPage() {
     setOpen(true);
   };
   const openEdit = (c: Category) => {
-    setForm({ id: c.id, slug: c.slug, name: c.name, sort: c.sort });
+    setForm({
+      id: c.id,
+      slug: c.slug,
+      name: c.name,
+      sort: c.sort,
+      group: c.group_key === "prislusenstvi" ? "prislusenstvi" : "pneu",
+    });
     setOpen(true);
   };
 
@@ -97,6 +110,7 @@ function CategoriesPage() {
             <thead>
               <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-3 font-medium">Název</th>
+                <th className="px-4 py-3 font-medium">Sekce</th>
                 <th className="px-4 py-3 font-medium">Slug</th>
                 <th className="px-4 py-3 font-medium">Pořadí</th>
                 <th className="px-4 py-3 font-medium">Produktů</th>
@@ -107,6 +121,11 @@ function CategoriesPage() {
               {(categories.data ?? []).map((c) => (
                 <tr key={c.id} className="border-b last:border-0 hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium">{c.name}</td>
+                  <td className="px-4 py-3">
+                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">
+                      {c.group_key === "prislusenstvi" ? "Příslušenství" : "Pneu"}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{c.slug}</td>
                   <td className="px-4 py-3 text-muted-foreground">{c.sort}</td>
                   <td className="px-4 py-3 text-muted-foreground">{c.product_count ?? 0}</td>
@@ -151,6 +170,19 @@ function CategoriesPage() {
                   }))
                 }
               />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-xs">Sekce</Label>
+              <select
+                value={form.group}
+                onChange={(e) =>
+                  setForm({ ...form, group: e.target.value as "pneu" | "prislusenstvi" })
+                }
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="pneu">Pneu</option>
+                <option value="prislusenstvi">Příslušenství</option>
+              </select>
             </div>
             <div className="grid gap-1.5">
               <Label className="text-xs">Slug</Label>
