@@ -124,9 +124,16 @@ export function SiteHeader({ solid = false }: { solid?: boolean }) {
                         </p>
                         <p className="truncate text-sm font-semibold">{user.email}</p>
                       </div>
+                      <Link
+                        to="/ucet"
+                        onClick={() => setAccountOpen(false)}
+                        className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium transition-colors hover:bg-[var(--cream)]"
+                      >
+                        <User className="h-4 w-4" /> Můj účet
+                      </Link>
                       <button
                         onClick={() => logoutMut.mutate()}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium transition-colors hover:bg-[var(--cream)]"
+                        className="flex w-full items-center gap-2 border-t px-4 py-3 text-sm font-medium transition-colors hover:bg-[var(--cream)]"
                       >
                         <LogOut className="h-4 w-4" /> Odhlásit se
                       </button>

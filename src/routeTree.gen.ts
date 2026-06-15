@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UcetRouteImport } from './routes/ucet'
 import { Route as ProduktyRouteImport } from './routes/produkty'
 import { Route as PrihlaseniRouteImport } from './routes/prihlaseni'
 import { Route as ONasRouteImport } from './routes/o-nas'
@@ -24,6 +25,11 @@ import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminAbraRouteImport } from './routes/admin/abra'
 
+const UcetRoute = UcetRouteImport.update({
+  id: '/ucet',
+  path: '/ucet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProduktyRoute = ProduktyRouteImport.update({
   id: '/produkty',
   path: '/produkty',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/o-nas': typeof ONasRoute
   '/prihlaseni': typeof PrihlaseniRoute
   '/produkty': typeof ProduktyRoute
+  '/ucet': typeof UcetRoute
   '/admin/abra': typeof AdminAbraRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/o-nas': typeof ONasRoute
   '/prihlaseni': typeof PrihlaseniRoute
   '/produkty': typeof ProduktyRoute
+  '/ucet': typeof UcetRoute
   '/admin/abra': typeof AdminAbraRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/o-nas': typeof ONasRoute
   '/prihlaseni': typeof PrihlaseniRoute
   '/produkty': typeof ProduktyRoute
+  '/ucet': typeof UcetRoute
   '/admin/abra': typeof AdminAbraRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/o-nas'
     | '/prihlaseni'
     | '/produkty'
+    | '/ucet'
     | '/admin/abra'
     | '/admin/categories'
     | '/admin/customers'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/o-nas'
     | '/prihlaseni'
     | '/produkty'
+    | '/ucet'
     | '/admin/abra'
     | '/admin/categories'
     | '/admin/customers'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/o-nas'
     | '/prihlaseni'
     | '/produkty'
+    | '/ucet'
     | '/admin/abra'
     | '/admin/categories'
     | '/admin/customers'
@@ -199,11 +211,19 @@ export interface RootRouteChildren {
   ONasRoute: typeof ONasRoute
   PrihlaseniRoute: typeof PrihlaseniRoute
   ProduktyRoute: typeof ProduktyRoute
+  UcetRoute: typeof UcetRoute
   ProduktIdRoute: typeof ProduktIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/ucet': {
+      id: '/ucet'
+      path: '/ucet'
+      fullPath: '/ucet'
+      preLoaderRoute: typeof UcetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/produkty': {
       id: '/produkty'
       path: '/produkty'
@@ -337,6 +357,7 @@ const rootRouteChildren: RootRouteChildren = {
   ONasRoute: ONasRoute,
   PrihlaseniRoute: PrihlaseniRoute,
   ProduktyRoute: ProduktyRoute,
+  UcetRoute: UcetRoute,
   ProduktIdRoute: ProduktIdRoute,
 }
 export const routeTree = rootRouteImport

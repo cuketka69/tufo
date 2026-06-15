@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getDb } from "@/lib/db.server";
 import { hashPassword, verifyPassword } from "@/lib/password.server";
 import { setUserSession, getSessionUserId, clearUserSession } from "@/lib/auth-session.server";
-import type { User } from "@/lib/eshop-types";
+import type { User, Customer, Order } from "@/lib/eshop-types";
 
 type UserRow = User & { password_hash: string };
 
@@ -44,6 +44,39 @@ export const getCurrentUser = createServerFn({ method: "GET" }).handler(
     }
   },
 );
+
+export const getMyAccount = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const userId = await getSessionUserId();
+    if (!userId) return null;
+    const db = getDb();
+    const user = db
+      .prepare("SELECT id, email, name, company, active FROM users WHERE id = ?")
+      .get(userId) as User | undefined;
+    if (!user || !user.active) return null;
+
+    const customer = db.prepare("SELECT * FROM customers WHERE email = ?").get(user.email) as
+      | Customer
+      | undefined;
+
+    const orders = customer
+      ? (db
+          .prepare(
+            `SELECT o.*, (SELECT COALESCE(SUM(oi.qty),0) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
+             FROM orders o WHERE o.customer_id = ? ORDER BY o.created_at DESC, o.id DESC`,
+          )
+          .all(customer.id) as Order[])
+      : [];
+
+    return {
+      user: { id: user.id, email: user.email, name: user.name, company: user.company },
+      customer: customer ?? null,
+      orders,
+    };
+  } catch {
+    return null;
+  }
+});
 
 /* ===================================================== ADMIN: ÚČTY B2B === */
 
