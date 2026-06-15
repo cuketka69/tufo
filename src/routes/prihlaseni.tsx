@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Mail, Lock, Copy, Loader2 } from "lucide-react";
+import { Mail, Lock, Copy } from "lucide-react";
 
 const DEMO_EMAIL = "b2b@tufo.cz";
 const DEMO_PASSWORD = "tufo1234";
@@ -21,25 +22,45 @@ function AuthPage() {
   const router = useRouter();
   const [email, setEmail] = useState(DEMO_EMAIL);
   const [password, setPassword] = useState(DEMO_PASSWORD);
+  const [filling, setFilling] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  const loginOk = useRef(false);
+  const fillDone = useRef(false);
+
+  // Naviguj na úvodku až když je tlačítko zaplněné A přihlášení proběhlo
+  const finish = () => {
+    if (!loginOk.current || !fillDone.current) return;
+    setExiting(true);
+    setTimeout(() => navigate({ to: "/" }), 360);
+  };
 
   const loginMut = useMutation({
     mutationFn: () => login({ data: { email, password } }),
     onSuccess: async () => {
-      // per-záložkový příznak: v této kartě jsme přihlášeni
       try {
         sessionStorage.setItem("tufo-tab-auth", "1");
       } catch {
         /* ignore */
       }
       await router.invalidate();
-      navigate({ to: "/" });
+      loginOk.current = true;
+      finish();
     },
-    onError: (e: Error) => toast.error(e.message || "Přihlášení selhalo"),
+    onError: (e: Error) => {
+      setFilling(false);
+      fillDone.current = false;
+      loginOk.current = false;
+      toast.error(e.message || "Přihlášení selhalo");
+    },
   });
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) loginMut.mutate();
+    if (!email || !password || filling) return;
+    fillDone.current = false;
+    loginOk.current = false;
+    setFilling(true);
+    loginMut.mutate();
   };
 
   const copy = (value: string) => {
@@ -50,7 +71,11 @@ function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--cream)] px-6 text-[var(--ink)]">
+    <motion.div
+      animate={{ opacity: exiting ? 0 : 1 }}
+      transition={{ duration: 0.36, ease: [0.23, 1, 0.32, 1] }}
+      className="flex min-h-screen flex-col items-center justify-center bg-[var(--cream)] px-6 text-[var(--ink)]"
+    >
       <Toaster position="top-right" richColors />
 
       <img src={blackLogo} alt="TUFO" className="mb-8 h-10 w-auto" />
@@ -86,11 +111,23 @@ function AuthPage() {
 
           <button
             type="submit"
-            disabled={loginMut.isPending || !email || !password}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--ink)] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition-[background-color,transform] duration-200 ease-out hover:bg-[var(--orange-deep)] active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
+            disabled={filling || !email || !password}
+            className="relative w-full overflow-hidden rounded-full bg-[var(--ink)] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition-transform duration-200 ease-out active:scale-[0.97] disabled:active:scale-100"
           >
-            {loginMut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {loginMut.isPending ? "Přihlašuji…" : "Přihlásit se"}
+            <motion.span
+              aria-hidden
+              className="absolute inset-0 origin-left bg-[var(--orange-deep)]"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: filling ? 1 : 0 }}
+              transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+              onAnimationComplete={() => {
+                if (filling) {
+                  fillDone.current = true;
+                  finish();
+                }
+              }}
+            />
+            <span className="relative z-10">{filling ? "Přihlašuji…" : "Přihlásit se"}</span>
           </button>
         </form>
 
@@ -121,7 +158,7 @@ function AuthPage() {
           .
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
