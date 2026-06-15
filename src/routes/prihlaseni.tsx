@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Mail, Lock, Copy } from "lucide-react";
+import { Mail, Lock, Copy, Loader2 } from "lucide-react";
 
 const DEMO_EMAIL = "b2b@tufo.cz";
 const DEMO_PASSWORD = "tufo1234";
@@ -87,8 +87,9 @@ function AuthPage() {
           <button
             type="submit"
             disabled={loginMut.isPending || !email || !password}
-            className="w-full rounded-full bg-[var(--ink)] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--orange-deep)] disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--ink)] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition-[background-color,transform] duration-200 ease-out hover:bg-[var(--orange-deep)] active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
           >
+            {loginMut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             {loginMut.isPending ? "Přihlašuji…" : "Přihlásit se"}
           </button>
         </form>
